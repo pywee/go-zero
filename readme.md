@@ -10,7 +10,7 @@
 该源码为 go-zero 1.5.4 源码，默认会使用 1.5.4 的 tpl 文件, 这个文件请使用以下方法复制过去：
 
 ```shell
-git clone https://gitea.bluettipower.com/Bluettipower/go-zero.git
+git clone git@github.com:pywee/go-zero.git
 
 mkdir ~/.goctl/1.5.4
 cd go-zero
@@ -34,8 +34,8 @@ mv goctl 你的GOPATH/bin目录下的goctl
 
 #### 在你的项目中使用新的 goctl 和 SQL 语法
 
-1.升级你项目中的 zerocommon 包，指定版本为 v0.2.1 即可
+1.升级你项目中的 gobson-where 包，指定版本为 latest 即可
 ```go
-gitea.bluettipower.com/bluettipower/zerocommon v0.2.1
+github.com/pywee/gobson-where latest
 ```
 
