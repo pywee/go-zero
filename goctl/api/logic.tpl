@@ -11,8 +11,8 @@ import (
 	"github.com/jinzhu/copier"
 	"gitea.bluettipower.com/bluettipower/delivery-service/model"
 	"gitea.bluettipower.com/bluettipower/zerocommon/converters"{{else if eq .function "List"}}
-	"fmt"
 	"github.com/jinzhu/copier"
+	"gitea.bluettipower.com/bluettipower/delivery-service/model"
 	"gitea.bluettipower.com/bluettipower/zerocommon/converters"
 	{{end}}
 )
@@ -72,11 +72,12 @@ func (l *{{.logic}}) {{.function}}({{.request}}) {{.responseType}}  {
 	}
 	return &types.Create{{.serviceName}}Resp{ID: id}, nil{{else if eq .function "List"}}sql := ""
 	if req.Status > 0 {
-		sql += fmt.Sprintf(`status=%d`, req.Status)
+		sql += `status=?`
 	}
 
 	var ret []types.{{.serviceName}}Column
-	list, total := l.svcCtx.{{.serviceName}}Model.Get{{.serviceName}}ListByWhere(l.ctx, sql)
+	sql += model.ParseLimit(req.Current, req.Size)
+	list, total := l.svcCtx.{{.serviceName}}Model.Get{{.serviceName}}ListByWhere(l.ctx, sql, req.Status)
 	err := copier.CopyWithOption(&ret, &list, copier.Option{IgnoreEmpty: true, DeepCopy: true, Converters: []copier.TypeConverter{converters.ObjectIdToStringConverter(), converters.TimeToInt64()}})
 	if err != nil {
 		return nil, err
