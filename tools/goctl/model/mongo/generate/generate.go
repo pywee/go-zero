@@ -2,9 +2,12 @@ package generate
 
 import (
 	"errors"
+	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"github.com/zeromicro/go-zero/tools/goctl/model/mongo/template"
 	"github.com/zeromicro/go-zero/tools/goctl/util"
 	"github.com/zeromicro/go-zero/tools/goctl/util/format"
@@ -39,7 +42,31 @@ func Do(ctx *Context) error {
 		return err
 	}
 
+	if err := generateCommonModel(ctx); err != nil {
+		return err
+	}
+
 	return generateError(ctx)
+}
+
+func generateCommonModel(ctx *Context) error {
+	home, err := pathx.GetGoctlHome()
+	if err != nil {
+		return err
+	}
+	buf, err := os.ReadFile(home + "/" + version.GetGoctlVersion() + "/mongo/" + commonTemplateFile)
+	if err != nil {
+		return err
+	}
+	dir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	if err = os.WriteFile(dir+"/model/"+strings.Replace(commonTemplateFile, ".tpl", ".go", 1), buf, 0755); err != nil {
+		return err
+	}
+	return nil
 }
 
 func generateModel(ctx *Context) error {

@@ -43,8 +43,8 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 	var requestString string
 	if len(route.ResponseTypeName()) > 0 {
 		resp := responseGoTypeName(route, typesPacket)
-		responseString = "(resp " + resp + ", err error)"
-		returnString = "return"
+		responseString = "(" + resp + ", error)"
+		returnString = "return " + strings.Replace(resp, "*", "&", 1) + "{}, nil"
 	} else {
 		responseString = "error"
 		returnString = "return nil"
@@ -54,6 +54,9 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 	}
 
 	subDir := getLogicFolderPath(group, route)
+	pkgName := subDir[strings.LastIndex(subDir, "/")+1:]
+	serviceName := getServiceName(pkgName)
+
 	return genFile(fileGenConfig{
 		dir:             dir,
 		subdir:          subDir,
@@ -63,13 +66,16 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 		templateFile:    logicTemplateFile,
 		builtinTemplate: logicTemplate,
 		data: map[string]string{
-			"pkgName":      subDir[strings.LastIndex(subDir, "/")+1:],
-			"imports":      imports,
-			"logic":        strings.Title(logic),
-			"function":     strings.Title(strings.TrimSuffix(logic, "Logic")),
-			"responseType": responseString,
-			"returnString": returnString,
-			"request":      requestString,
+			"requestTypeName":  route.RequestTypeName(),
+			"responseTypeName": route.ResponseTypeName(),
+			"serviceName":      serviceName,
+			"pkgName":          pkgName,
+			"imports":          imports,
+			"logic":            strings.Title(logic),
+			"function":         strings.Title(strings.TrimSuffix(logic, "Logic")),
+			"responseType":     responseString,
+			"returnString":     returnString,
+			"request":          requestString,
 		},
 	})
 }
@@ -134,4 +140,13 @@ func shallImportTypesPackage(route spec.Route) bool {
 	}
 
 	return true
+}
+
+func getServiceName(pkgName string) string {
+	serviceName := ""
+	arr := strings.Split(pkgName, "_")
+	for _, v := range arr {
+		serviceName += strings.Title(v)
+	}
+	return serviceName
 }
