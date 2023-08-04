@@ -13,6 +13,7 @@ const (
 	modelCustomTemplateFile = "model_custom.tpl"
 	modelTypesTemplateFile  = "model_types.tpl"
 	errTemplateFile         = "err.tpl"
+	commonTemplateFile      = "common.tpl"
 )
 
 var templates = map[string]string{
