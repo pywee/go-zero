@@ -6,7 +6,6 @@ import (
 	"gitea.bluettipower.com/bluettipower/zerocommon/converters"{{else if eq .function "Get"}}
 	"github.com/jinzhu/copier"
 	"gitea.bluettipower.com/bluettipower/zerocommon/converters"{{else if eq .function "Create"}}
-	"fmt"
 	"errors"
 	"github.com/jinzhu/copier"
 	"gitea.bluettipower.com/bluettipower/delivery-service/model"
@@ -36,7 +35,7 @@ func (l *{{.logic}}) {{.function}}({{.request}}) {{.responseType}}  {
 	{{if eq .function "Del"}}if err := l.svcCtx.{{.serviceName}}Model.Delete(l.ctx, req.ID); err != nil {
 		return nil, err
 	}
-	return &types.{{.responseTypeName}}{ID: req.ID}, nil{{else if eq .function "Update"}}ret, err := l.svcCtx.{{.serviceName}}Model.Get{{.serviceName}}ById(l.ctx, req.ID)
+	return &types.{{.responseTypeName}}{}, nil{{else if eq .function "Update"}}ret, err := l.svcCtx.{{.serviceName}}Model.Get{{.serviceName}}ById(l.ctx, req.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -56,9 +55,9 @@ func (l *{{.logic}}) {{.function}}({{.request}}) {{.responseType}}  {
 	if err := copier.CopyWithOption(&data, ret, copier.Option{IgnoreEmpty: true, DeepCopy: true, Converters: []copier.TypeConverter{converters.ObjectIdToStringConverter(), converters.TimeToInt64()}}); err != nil {
 		return nil, err
 	}
-	return &data, nil{{else if eq .function "Create"}}sql := fmt.Sprintf(`conditions`)
+	return &data, nil{{else if eq .function "Create"}}sql := `conditions`
 	if count := l.svcCtx.{{.serviceName}}Model.Count{{.serviceName}}ByWhere(l.ctx, sql); count > 0 {
-		return nil, errors.New("      ")
+		return nil, errors.New(" ")
 	}
 
 	var data model.{{.serviceName}}
