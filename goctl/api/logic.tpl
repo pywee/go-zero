@@ -48,7 +48,7 @@ func (l *{{.logic}}) {{.function}}({{.request}}) {{.responseType}}  {
 	if _, err := l.svcCtx.{{.serviceName}}Model.Update(l.ctx, ret); err != nil {
 		return nil, err
 	}
-	return &types.Update{{.serviceName}}Resp{ID: req.ID}, nil{{else if eq .function "Get"}}ret, err := l.svcCtx.{{.serviceName}}Model.Get{{.serviceName}}ById(l.ctx, req.ID)
+	return &types.Update{{.serviceName}}Resp{}, nil{{else if eq .function "Get"}}ret, err := l.svcCtx.{{.serviceName}}Model.Get{{.serviceName}}ById(l.ctx, req.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -67,7 +67,7 @@ func (l *{{.logic}}) {{.function}}({{.request}}) {{.responseType}}  {
 	}
 
 	id, err := l.svcCtx.{{.serviceName}}Model.Insert(l.ctx, &data)
-	if err != nil {
+	err != nil {
 		return nil, err
 	}
 	return &types.Create{{.serviceName}}Resp{ID: id}, nil{{else if eq .function "List"}}sql := ""
