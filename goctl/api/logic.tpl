@@ -66,7 +66,7 @@ func (l *{{.logic}}) {{.function}}({{.request}}) {{.responseType}}  {
 	}
 
 	id, err := l.svcCtx.{{.serviceName}}Model.Insert(l.ctx, &data)
-	err != nil {
+	if err != nil {
 		return nil, err
 	}
 	return &types.Create{{.serviceName}}Resp{ID: id}, nil{{else if eq .function "List"}}sql := ""
