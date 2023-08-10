@@ -9,6 +9,7 @@ import (
     "go.mongodb.org/mongo-driver/bson"
     "go.mongodb.org/mongo-driver/bson/primitive"
     "go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 {{if .Cache}}var prefix{{.Type}}CacheKey = "cache:{{.lowerType}}:"{{end}}
@@ -18,6 +19,7 @@ type {{.lowerType}}Model interface{
     FindOne(ctx context.Context,id string) (*{{.Type}}, error)
     Update(ctx context.Context,data *{{.Type}}) (*mongo.UpdateResult, error)
     Delete(ctx context.Context,id string) error
+	Find(ctx context.Context, filter interface{}, opt ...*options.FindOptions) ([]*{{.Type}}, error)
 }
 
 type default{{.Type}}Model struct {
@@ -31,13 +33,27 @@ func newDefault{{.Type}}Model(conn {{if .Cache}}*monc.Model{{else}}*mon.Model{{e
 func (m *default{{.Type}}Model) Insert(ctx context.Context, data *{{.Type}}) (string, error) {
     if data.ID.IsZero() {
         data.ID = primitive.NewObjectID()
-        data.CreateAt = time.Now()
-        data.UpdateAt = time.Now()
+        if data.CreateAt.IsZero() {
+            data.CreateAt = time.Now()
+        }
+        if data.UpdateAt.IsZero() {
+            data.UpdateAt = time.Now()
+        }
     }
 
     {{if .Cache}}key := prefix{{.Type}}CacheKey + data.ID.Hex(){{end}}
     ret, err := m.conn.InsertOne(ctx, {{if .Cache}}key, {{end}} data)
     return ret.InsertedID.(primitive.ObjectID).Hex(), err
+}
+
+// Find 原生批量获取数据
+func (m *custom{{.Type}}Model) Find(ctx context.Context, filter interface{}, opt ...*options.FindOptions) ([]*{{.Type}}, error) {
+	var data []*{{.Type}}
+	err := m.conn.Find(ctx, &data, filter, opt...)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
 }
 
 func (m *default{{.Type}}Model) FindOne(ctx context.Context, id string) (*{{.Type}}, error) {
