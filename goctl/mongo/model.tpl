@@ -47,7 +47,7 @@ func (m *default{{.Type}}Model) Insert(ctx context.Context, data *{{.Type}}) (st
 }
 
 // Find 原生批量获取数据
-func (m *custom{{.Type}}Model) Find(ctx context.Context, filter interface{}, opt ...*options.FindOptions) ([]*{{.Type}}, error) {
+func (m *default{{.Type}}Model) Find(ctx context.Context, filter interface{}, opt ...*options.FindOptions) ([]*{{.Type}}, error) {
 	var data []*{{.Type}}
 	err := m.conn.Find(ctx, &data, filter, opt...)
 	if err != nil {
