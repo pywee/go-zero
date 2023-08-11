@@ -7,6 +7,7 @@ import (
 )
 
 type {{.Type}} struct {
+	// ID 主键 
 	ID primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 
 	// Deleted 是否删除 [0.正常; 1删除]
