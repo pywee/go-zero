@@ -57,7 +57,7 @@ func (l *{{.logic}}) {{.function}}({{.request}}) {{.responseType}}  {
 	}
 	return &data, nil{{else if eq .function "Create"}}sql := `conditions`
 	if count := l.svcCtx.{{.serviceName}}Model.Count{{.serviceName}}ByWhere(l.ctx, sql); count > 0 {
-		return nil, errors.New(" ")
+		return nil, errors.New("")
 	}
 
 	var data model.{{.serviceName}}
@@ -74,7 +74,7 @@ func (l *{{.logic}}) {{.function}}({{.request}}) {{.responseType}}  {
 		sql += `status=?`
 	}
 
-	var ret []types.{{.serviceName}}Column
+	var ret []*types.{{.serviceName}}Column
 	sql += model.ParseLimit(req.Current, req.Size)
 	list, total := l.svcCtx.{{.serviceName}}Model.Get{{.serviceName}}ListByWhere(l.ctx, sql, req.Status)
 	err := copier.CopyWithOption(&ret, &list, copier.Option{IgnoreEmpty: true, DeepCopy: true, Converters: []copier.TypeConverter{converters.ObjectIdToStringConverter(), converters.TimeToInt64()}})
