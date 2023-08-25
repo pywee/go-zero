@@ -66,21 +66,6 @@ func (m *custom{{.Type}}Model) Get{{.Type}}ByWhere(ctx context.Context, conditio
 
 // Get{{.Type}}ListByWhere 获取列表
 func (m *custom{{.Type}}Model) Get{{.Type}}ListByWhere(ctx context.Context, conditions string, params ...interface{}) ([]*{{.Type}}, int64) {
-	// for k, v := range conditions {
-	// filter = append(filter, bson.E{Key: k, Value: v})
-	// }
-
-	//_ = bson.D{
-	//	bson.E{Key: "sku", Value: bson.M{"$ne": "kkk333"}},
-	//	bson.E{Key: "$or", Value: bson.A{
-	//		bson.D{bson.E{Key: "name", Value: "test1"}},
-	//		bson.D{bson.E{Key: "name", Value: "test3"}},
-	//	}},
-	//}
-
-	// buf, _ := json.MarshalIndent(filter, "", " ")
-	// fmt.Println(string(buf))
-	
 	var list []*{{.Type}}
 	opt := where.Parse(conditions, params...)
 	if err := m.conn.Find(ctx, &list, opt.Filter, opt.Options); err != nil {
