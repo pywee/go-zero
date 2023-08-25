@@ -11,9 +11,8 @@
 
 ```shell
 git clone git@github.com:pywee/go-zero.git
-
-mkdir ~/.goctl/1.5.4
 cd go-zero
+mkdir ~/.goctl/1.5.4
 cp -r goctl/* ~/.goctl/1.5.4/
 ls ~/.goctl/1/5.4
 ```
