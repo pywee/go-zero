@@ -19,6 +19,7 @@ type {{.lowerType}}Model interface{
     FindOne(ctx context.Context,id string) (*{{.Type}}, error)
     Update(ctx context.Context,data *{{.Type}}) (*mongo.UpdateResult, error)
     Delete(ctx context.Context,id string) error
+    DeleteMany(ctx context.Context,ids []string) error
 	Find(ctx context.Context, filter interface{}, opt ...*options.FindOptions) ([]*{{.Type}}, error)
 }
 
@@ -93,5 +94,20 @@ func (m *default{{.Type}}Model) Delete(ctx context.Context, id string) error {
 		return err
 	}
 	err = m.conn.DelCache(ctx, key){{end}}
+	return err
+}
+
+func (m *default{{.Type}}Model) DeleteMany(ctx context.Context, ids []string) error {
+    var objectIDs []primitive.ObjectID
+	{{if .Cache}} var keys []string {{end}}
+	for _, id := range ids {
+        oid, err := primitive.ObjectIDFromHex(id)
+        if err != nil {
+                return ErrInvalidObjectId
+        }
+        objectIDs = append(objectIDs, oid)
+        {{if .Cache}}keys = append(keys, prefix{{.Type}}CacheKey+id){{end}}
+	}
+	_, err := m.conn.UpdateMany(ctx, {{if .Cache}}keys, {{end}}bson.M{"_id": bson.M{"$in": objectIDs}}, bson.M{"$set": bson.M{"deleted": 1} })
 	return err
 }

@@ -33,7 +33,6 @@ type (
 	Get{{.Type}}ListByWhere (context.Context, string, ...interface{}) ([]*{{.Type}}, int64)
 	Count{{.Type}}ByWhere(context.Context, string, ...interface{}) int64
 	Update{{.Type}}(context.Context, *{{.Type}}) error
-	Update{{.Type}}ByWhere(context.Context, string) error
     }
 
     custom{{.Type}}Model struct {
@@ -106,7 +105,10 @@ func (m *custom{{.Type}}Model) Update{{.Type}}(ctx context.Context, data *{{.Typ
 }
 
 // Update{{.Type}}ByWhere 根据条件更新多个 {{.Type}}
-func (m *custom{{.Type}}Model) Update{{.Type}}ByWhere(ctx context.Context, filter string) error {
-	return nil
-}
-
+// func (m *custom{{.Type}}Model) Update{{.Type}}ByWhere(ctx context.Context, data map[string]interface{}, conditions string, params ...interface{} ) error {
+	// opt := where.Parse(conditions, params...)
+	// if _, err := m.conn.UpdateMany(ctx, bson.M{"$set": data}, opt.Filter, params...); err != nil {
+		// return err
+	// }
+	// return nil
+// }
