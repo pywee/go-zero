@@ -15,12 +15,13 @@ import (
 {{if .Cache}}var prefix{{.Type}}CacheKey = "cache:{{.lowerType}}:"{{end}}
 
 type {{.lowerType}}Model interface{
-    Insert(ctx context.Context,data *{{.Type}}) (string, error)
-    FindOne(ctx context.Context,id string) (*{{.Type}}, error)
-    Update(ctx context.Context,data *{{.Type}}) (*mongo.UpdateResult, error)
-    Delete(ctx context.Context,id string) error
-    DeleteMany(ctx context.Context,ids []string) error
+    Insert(ctx context.Context, data *{{.Type}}) (string, error)
+    FindOne(ctx context.Context, id string) (*{{.Type}}, error)
 	Find(ctx context.Context, filter interface{}, opt ...*options.FindOptions) ([]*{{.Type}}, error)
+	Count(ctx context.Context, filter interface{}) int64
+    Update(ctx context.Context, data *{{.Type}}) (*mongo.UpdateResult, error)
+    Delete(ctx context.Context, id string) error
+    DeleteMany(ctx context.Context, ids []string) error
 }
 
 type default{{.Type}}Model struct {
@@ -55,6 +56,12 @@ func (m *default{{.Type}}Model) Find(ctx context.Context, filter interface{}, op
 		return nil, err
 	}
 	return data, nil
+}
+
+// Count 原生统计某条件下的行数
+func (m *default{{.Type}}Model) Count(ctx context.Context, filter interface{}) int64 {
+	count, _ := m.conn.CountDocuments(ctx, filter)
+	return count
 }
 
 func (m *default{{.Type}}Model) FindOne(ctx context.Context, id string) (*{{.Type}}, error) {
