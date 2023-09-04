@@ -45,7 +45,10 @@ func (m *default{{.Type}}Model) Insert(ctx context.Context, data *{{.Type}}) (st
 
     {{if .Cache}}key := prefix{{.Type}}CacheKey + data.ID.Hex(){{end}}
     ret, err := m.conn.InsertOne(ctx, {{if .Cache}}key, {{end}} data)
-    return ret.InsertedID.(primitive.ObjectID).Hex(), err
+    if err != nil {
+        return "", err
+    }
+    return ret.InsertedID.(primitive.ObjectID).Hex(), nil
 }
 
 // Find 原生批量获取数据
