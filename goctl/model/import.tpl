@@ -3,6 +3,8 @@ import (
 	"database/sql"
 	"fmt"
 	"strings"
+	"reflect"
+	"time"
 	{{if .time}}"time"{{end}}
 
 	{{if .containsPQ}}"github.com/lib/pq"{{end}}

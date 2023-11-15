@@ -10,11 +10,11 @@
 该源码为 go-zero 1.5.4 源码，默认会使用 1.5.4 的 tpl 文件, 这个文件请使用以下方法复制过去：
 
 ```shell
+cd /workspace
 git clone git@github.com:pywee/go-zero.git
 cd go-zero
-mkdir ~/.goctl/1.5.4
-cp -r goctl/* ~/.goctl/1.5.4/
-ls ~/.goctl/1/5.4
+mkdir ~/.goctl
+ln -s /workspace/go-zero/goctl ~/.goctl/1.5.4 # 此处的源目录必须用绝对路径 /workspace/go-zero/goctl
 ```
 
 编译 go-zero 的 goctl，主机内存如果小于8GB，在编译时可能会报错

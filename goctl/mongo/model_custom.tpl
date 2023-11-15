@@ -8,10 +8,12 @@ package model
     "gitea.bluettipower.com/bluettipower/zerocommon/where"
     "github.com/zeromicro/go-zero/core/stores/cache"
     "github.com/zeromicro/go-zero/core/stores/monc"
+    "go.mongodb.org/mongo-driver/bson"
 ){{else}}import (
     "context"
 
     "github.com/jinzhu/copier"
+    "go.mongodb.org/mongo-driver/bson"
     "gitea.bluettipower.com/bluettipower/zerocommon/converters"
     "gitea.bluettipower.com/bluettipower/zerocommon/where"
     "github.com/zeromicro/go-zero/core/stores/mon"
@@ -32,6 +34,7 @@ type (
 	Get{{.Type}}ByWhere (context.Context, string, ...interface{}) (*{{.Type}}, error)
 	Get{{.Type}}ListByWhere (context.Context, string, ...interface{}) ([]*{{.Type}}, int64)
 	Count{{.Type}}ByWhere(context.Context, string, ...interface{}) int64
+	Delete{{.Type}}ByWhere(context.Context, string, ...interface{}) error
 	Update{{.Type}}(context.Context, *{{.Type}}) error
     }
 
@@ -85,6 +88,13 @@ func (m *custom{{.Type}}Model) Count{{.Type}}ByWhere(ctx context.Context, condit
 	opt := where.Parse(conditions, params...)
 	count, _ := m.conn.CountDocuments(ctx, opt.Filter)
 	return count
+}
+
+// Delete{{.Type}}ByWhere 批量删除
+func (m *custom{{.Type}}Model) Delete{{.Type}}ByWhere(ctx context.Context, conditions string, params ...interface{}) error {
+	opt := where.Parse(conditions, params...)
+	_, err := m.conn.UpdateManyNoCache(ctx, opt.Filter, bson.M{"$set": bson.M{"deleted": 1}})
+	return err
 }
 
 // Update{{.Type}} 更新单条 {{.Type}} 记录

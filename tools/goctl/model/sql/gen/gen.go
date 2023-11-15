@@ -356,6 +356,7 @@ func (g *defaultGenerator) genModelCustom(in parser.Table, withCache bool) (stri
 	output, err := t.Execute(map[string]any{
 		"pkg":                   g.pkg,
 		"withCache":             withCache,
+		"tableNameStr":          in.Name.ToCamel(),
 		"upperStartCamelObject": in.Name.ToCamel(),
 		"lowerStartCamelObject": stringx.From(in.Name.ToCamel()).Untitle(),
 	})
@@ -375,18 +376,19 @@ func (g *defaultGenerator) executeModel(table Table, code *code) (*bytes.Buffer,
 		Parse(text).
 		GoFmt(true)
 	output, err := t.Execute(map[string]any{
-		"pkg":         g.pkg,
-		"imports":     code.importsCode,
-		"vars":        code.varsCode,
-		"types":       code.typesCode,
-		"new":         code.newCode,
-		"insert":      code.insertCode,
-		"find":        strings.Join(code.findCode, "\n"),
-		"update":      code.updateCode,
-		"delete":      code.deleteCode,
-		"extraMethod": code.cacheExtra,
-		"tableName":   code.tableName,
-		"data":        table,
+		"pkg":          g.pkg,
+		"imports":      code.importsCode,
+		"vars":         code.varsCode,
+		"types":        code.typesCode,
+		"new":          code.newCode,
+		"insert":       code.insertCode,
+		"find":         strings.Join(code.findCode, "\n"),
+		"update":       code.updateCode,
+		"delete":       code.deleteCode,
+		"extraMethod":  code.cacheExtra,
+		"tableName":    code.tableName,
+		"tableNameStr": table.Name.ToCamel(),
+		"data":         table,
 	})
 	if err != nil {
 		return nil, err
