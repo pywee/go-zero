@@ -1,5 +1,5 @@
 build:
-	go build -ldflags="-s -w" -o /root/go/workspace/bin/goctl goctl.go
+	go build -ldflags="-s -w" -o /root/go/bin/goctl goctl.go
 	$(if $(shell command -v upx), upx goctl)
 
 mac:
