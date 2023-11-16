@@ -22,6 +22,7 @@ type (
 		Get{{.tableNameStr}}ByWhere(context.Context, string, ...any) (*{{.upperStartCamelObject}}, error)
 		Get{{.tableNameStr}}ListByWhere(context.Context, string, ...any) ([]*{{.upperStartCamelObject}}, error)
 		Sum{{.tableNameStr}}ByWhere(context.Context, string, string, ...any) (int64, error)
+		Count{{.tableNameStr}}ByWhere(context.Context, string, ...any) int64
 	}
 
 	custom{{.upperStartCamelObject}}Model struct {
@@ -61,6 +62,25 @@ func (m *default{{.upperStartCamelObject}}Model) Sum{{.tableNameStr}}ByWhere(ctx
 		return 0, err
 	}
 	return resp.C, nil
+}
+
+// Count{{.tableNameStr}}ByWhere 根据条件获取记录数
+func (m *default{{.upperStartCamelObject}}Model) Count{{.tableNameStr}}ByWhere(ctx context.Context, where string, args ...any) int64 {
+	kk := where
+	for _, v := range args {
+		kk += fmt.Sprintf("%v", v)
+	}
+	
+	resp := struct { C int64 }{}
+	query := fmt.Sprintf("select count(*) C from %s", m.table)
+	if where != "" {
+		query = fmt.Sprintf("select count(*) C from %s where %s", m.table, where)
+	}
+	
+	if err := m.QueryRowNoCacheCtx(ctx, &resp, query, args...); err != nil {
+		return 0
+	}
+	return resp.C
 }
 
 // Get{{.tableNameStr}}ByWhere 根据条件获取列表数据
