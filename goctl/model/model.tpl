@@ -43,16 +43,16 @@ func (m *default{{.upperStartCamelObject}}Model) Sum{{.tableNameStr}}ByWhere(ctx
 		kk += fmt.Sprintf("%v", v)
 	}
 
-	key := fmt.Sprintf("%x", md5.Sum([]byte(kk)))
-	bluettiPointsRecordIdKey := fmt.Sprintf("%s%s", cacheBluettiPointsRecordIdPrefix, key)
-	_ = bluettiPointsRecordIdKey
+	// key := fmt.Sprintf("%x", md5.Sum([]byte(kk)))
+	// bluettiPointsRecordIdKey := fmt.Sprintf("%s%s", cacheBluettiPointsRecordIdPrefix, key)
+	// _ = bluettiPointsRecordIdKey
 
 	resp := struct { C int64 }{}
-	query := fmt.Sprintf("select sum(%s) f from %s", field, m.table)
+	query := fmt.Sprintf("select sum(%s) C from %s", field, m.table)
 	if where != "" {
-		query = fmt.Sprintf("select sum(%s) f from %s where %s", field, m.table, where)
+		query = fmt.Sprintf("select sum(%s) C from %s where %s", field, m.table, where)
 	}
-	err := m.QueryRowsNoCacheCtx(ctx, &resp, query, args...)
+	err := m.QueryRowNoCacheCtx(ctx, &resp, query, args...)
 
 	if err != nil {
 		if err == sqlc.ErrNotFound {
@@ -83,7 +83,7 @@ func (m *default{{.upperStartCamelObject}}Model) Get{{.tableNameStr}}ByWhere(ctx
 		}
 		return nil, err
 	}
-	return resp, nil
+	return &resp, nil
 }
 
 // Get{{.tableNameStr}}ListByWhere 根据条件获取列表数据
