@@ -48,7 +48,7 @@ func (m *default{{.upperStartCamelObject}}Model) Sum{{.tableNameStr}}ByWhere(ctx
 	query := fmt.Sprintf("select sum(%s) C from %s where delete_ts=0", field, m.table)
 	if where != "" {
 		if !strings.Contains(where, "delete_ts") {
-			where += " AND delete_ts=0"
+			where = "delete_ts=0 AND " + where
 		}
 		query = fmt.Sprintf("select sum(%s) C from %s where %s", field, m.table, where)
 	}
@@ -69,7 +69,7 @@ func (m *default{{.upperStartCamelObject}}Model) Count{{.tableNameStr}}ByWhere(c
 	query := fmt.Sprintf("select count(*) C from %s where delete_ts=0", m.table)
 	if where != "" {
 		if !strings.Contains(where, "delete_ts") {
-			where += " AND delete_ts=0"
+			where = "delete_ts=0 AND " + where
 		}
 		query = fmt.Sprintf("select count(*) C from %s where %s", m.table, where)
 	}
@@ -91,7 +91,7 @@ func (m *default{{.upperStartCamelObject}}Model) Get{{.tableNameStr}}ByWhere(ctx
 	query := fmt.Sprintf("select %s from %s where delete_ts=0 LIMIT 1", pointsRecordRows, m.table)
 	if where != "" {
 		if !strings.Contains(where, "delete_ts") {
-			where += " AND delete_ts=0"
+			where = "delete_ts=0 AND " + where
 		}
 		query = fmt.Sprintf("select %s from %s where %s LIMIT 1", pointsRecordRows, m.table, where)
 	}
@@ -121,7 +121,7 @@ func (m *default{{.upperStartCamelObject}}Model) Get{{.tableNameStr}}ListByWhere
 	query := fmt.Sprintf("select %s from %s where delete_ts=0", pointsRecordRows, m.table)
 	if where != "" {
 		if !strings.Contains(where, "delete_ts") {
-			where += " AND delete_ts=0"
+			where = "delete_ts=0 AND " + where
 		}
 		query = fmt.Sprintf("select %s from %s where %s", pointsRecordRows, m.table, where)
 	}
