@@ -56,4 +56,5 @@ gen:
 	goctl model mysql datasource --cache="true" --url="root:xxx@tcp(ip:port)/dbName" --table="${table}" --dir ./mysqlModel
 
 # goctl model mysql -c -e --dir ./model -t ${model}
+# goctl rpc protoc .\proto\message.proto --go_out=. --go-grpc_out=. --zrpc_out=.
 ```
