@@ -87,7 +87,7 @@ func (m *default{{.upperStartCamelObject}}Model) Get{{.tableNameStr}}ByWhere(ctx
 		kk += fmt.Sprintf("%v", v)
 	}
 
-	var resp PointsRecord
+	var resp {{.tableNameStr}}
 	query := fmt.Sprintf("select %s from %s where delete_ts=0 LIMIT 1", pointsRecordRows, m.table)
 	if where != "" {
 		if !strings.Contains(where, "delete_ts") {
@@ -117,7 +117,7 @@ func (m *default{{.upperStartCamelObject}}Model) Get{{.tableNameStr}}ListByWhere
 	// bluettiPointsRecordIdKey := fmt.Sprintf("%s%s", cacheBluettiPointsRecordIdPrefix, key)
 	// _ = bluettiPointsRecordIdKey
 
-	var resp []*PointsRecord
+	var resp []*{{.tableNameStr}}
 	query := fmt.Sprintf("select %s from %s where delete_ts=0", pointsRecordRows, m.table)
 	if where != "" {
 		if !strings.Contains(where, "delete_ts") {
