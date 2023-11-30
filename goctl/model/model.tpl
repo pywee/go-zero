@@ -88,14 +88,14 @@ func (m *default{{.upperStartCamelObject}}Model) Get{{.tableNameStr}}ByWhere(ctx
 	}
 
 	var resp {{.tableNameStr}}
-	query := fmt.Sprintf("select %s from %s where delete_ts=0 LIMIT 1", pointsRecordRows, m.table)
+	query := fmt.Sprintf("select %s from %s where delete_ts=0 LIMIT 1", {{.tableNameLower}}Rows, m.table)
 	if where != "" {
 		if !strings.Contains(where, "delete_ts") {
 			where = "delete_ts=0 AND " + where
 		}
-		query = fmt.Sprintf("select %s from %s where %s LIMIT 1", pointsRecordRows, m.table, where)
+		query = fmt.Sprintf("select %s from %s where %s LIMIT 1", {{.tableNameLower}}Rows, m.table, where)
 	}
-	err := m.QueryRowsNoCacheCtx(ctx, &resp, query, args...)
+	err := m.QueryRowNoCacheCtx(ctx, &resp, query, args...)
 
 	if err != nil {
 		if err == sqlc.ErrNotFound {
@@ -118,12 +118,12 @@ func (m *default{{.upperStartCamelObject}}Model) Get{{.tableNameStr}}ListByWhere
 	// _ = bluettiPointsRecordIdKey
 
 	var resp []*{{.tableNameStr}}
-	query := fmt.Sprintf("select %s from %s where delete_ts=0", pointsRecordRows, m.table)
+	query := fmt.Sprintf("select %s from %s where delete_ts=0", {{.tableNameLower}}Rows, m.table)
 	if where != "" {
 		if !strings.Contains(where, "delete_ts") {
 			where = "delete_ts=0 AND " + where
 		}
-		query = fmt.Sprintf("select %s from %s where %s", pointsRecordRows, m.table, where)
+		query = fmt.Sprintf("select %s from %s where %s", {{.tableNameLower}}Rows, m.table, where)
 	}
 	err := m.QueryRowsNoCacheCtx(ctx, &resp, query, args...)
 

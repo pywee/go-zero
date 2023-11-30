@@ -357,6 +357,7 @@ func (g *defaultGenerator) genModelCustom(in parser.Table, withCache bool) (stri
 		"pkg":                   g.pkg,
 		"withCache":             withCache,
 		"tableNameStr":          in.Name.ToCamel(),
+		"tableNameLower":        FirstLower(in.Name.ToCamel()),
 		"upperStartCamelObject": in.Name.ToCamel(),
 		"lowerStartCamelObject": stringx.From(in.Name.ToCamel()).Untitle(),
 	})
@@ -394,6 +395,13 @@ func (g *defaultGenerator) executeModel(table Table, code *code) (*bytes.Buffer,
 		return nil, err
 	}
 	return output, nil
+}
+
+func FirstLower(s string) string {
+	if s == "" {
+		return ""
+	}
+	return strings.ToLower(s[:1]) + s[1:]
 }
 
 func wrapWithRawString(v string, postgreSql bool) string {
