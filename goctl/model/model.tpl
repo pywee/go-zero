@@ -46,10 +46,10 @@ func (m *default{{.upperStartCamelObject}}Model) Sum{{.tableNameStr}}ByWhere(ctx
 	}
 
 	resp := struct { C int64 }{}
-	query := fmt.Sprintf("select sum(%s) C from %s where delete_ts=0", field, m.table)
+	query := fmt.Sprintf("select sum(%s) C from %s where deleteTs=0", field, m.table)
 	if where != "" {
-		if !strings.Contains(where, "delete_ts") {
-			where = "delete_ts=0 AND " + where
+		if !strings.Contains(where, "deleteTs") {
+			where = "deleteTs=0 AND " + where
 		}
 		query = fmt.Sprintf("select sum(%s) C from %s where %s", field, m.table, where)
 	}
@@ -67,10 +67,10 @@ func (m *default{{.upperStartCamelObject}}Model) Count{{.tableNameStr}}ByWhere(c
 	}
 	
 	resp := struct { C int64 }{}
-	query := fmt.Sprintf("select count(*) C from %s where delete_ts=0", m.table)
+	query := fmt.Sprintf("select count(*) C from %s where deleteTs=0", m.table)
 	if where != "" {
-		if !strings.Contains(where, "delete_ts") {
-			where = "delete_ts=0 AND " + where
+		if !strings.Contains(where, "deleteTs") {
+			where = "deleteTs=0 AND " + where
 		}
 		query = fmt.Sprintf("select count(*) C from %s where %s", m.table, where)
 	}
@@ -84,7 +84,7 @@ func (m *default{{.upperStartCamelObject}}Model) Count{{.tableNameStr}}ByWhere(c
 // Get{{.tableNameStr}}ByID 根据ID获取一条
 func (m *default{{.upperStartCamelObject}}Model) Get{{.tableNameStr}}ById(ctx context.Context, id int64) (*{{.upperStartCamelObject}}, error) {
 	var resp {{.tableNameStr}}
-	query := fmt.Sprintf("select %s from %s where id=? delete_ts=0 LIMIT 1", {{.tableNameLower}}Rows, m.table)
+	query := fmt.Sprintf("select %s from %s where id=? AND deleteTs=0 LIMIT 1", {{.tableNameLower}}Rows, m.table)
 	if err := m.QueryRowNoCacheCtx(ctx, &resp, query, id); err != nil {
 		if err == sqlc.ErrNotFound {
 			return nil, ErrNotFound
@@ -102,10 +102,10 @@ func (m *default{{.upperStartCamelObject}}Model) Get{{.tableNameStr}}ByWhere(ctx
 	}
 
 	var resp {{.tableNameStr}}
-	query := fmt.Sprintf("select %s from %s where delete_ts=0 LIMIT 1", {{.tableNameLower}}Rows, m.table)
+	query := fmt.Sprintf("select %s from %s where deleteTs=0 LIMIT 1", {{.tableNameLower}}Rows, m.table)
 	if where != "" {
-		if !strings.Contains(where, "delete_ts") {
-			where = "delete_ts=0 AND " + where
+		if !strings.Contains(where, "deleteTs") {
+			where = "deleteTs=0 AND " + where
 		}
 		query = fmt.Sprintf("select %s from %s where %s LIMIT 1", {{.tableNameLower}}Rows, m.table, where)
 	}
@@ -132,10 +132,10 @@ func (m *default{{.upperStartCamelObject}}Model) Get{{.tableNameStr}}ListByWhere
 	// _ = bluettiPointsRecordIdKey
 
 	var resp []*{{.tableNameStr}}
-	query := fmt.Sprintf("select %s from %s where delete_ts=0", {{.tableNameLower}}Rows, m.table)
+	query := fmt.Sprintf("select %s from %s where deleteTs=0", {{.tableNameLower}}Rows, m.table)
 	if where != "" {
-		if !strings.Contains(where, "delete_ts") {
-			where = "delete_ts=0 AND " + where
+		if !strings.Contains(where, "deleteTs") {
+			where = "deleteTs=0 AND " + where
 		}
 		query = fmt.Sprintf("select %s from %s where %s", {{.tableNameLower}}Rows, m.table, where)
 	}
