@@ -19,6 +19,7 @@ type (
 	// and implement the added methods in custom{{.upperStartCamelObject}}Model.
 	{{.upperStartCamelObject}}Model interface {
 		{{.lowerStartCamelObject}}Model
+		Get{{.tableNameStr}}ById(context.Context, int64) (*{{.upperStartCamelObject}}, error)
 		Get{{.tableNameStr}}ByWhere(context.Context, string, ...any) (*{{.upperStartCamelObject}}, error)
 		Get{{.tableNameStr}}ListByWhere(context.Context, string, ...any) ([]*{{.upperStartCamelObject}}, error)
 		Sum{{.tableNameStr}}ByWhere(context.Context, string, string, ...any) int64
@@ -78,6 +79,19 @@ func (m *default{{.upperStartCamelObject}}Model) Count{{.tableNameStr}}ByWhere(c
 		return 0
 	}
 	return resp.C
+}
+
+// Get{{.tableNameStr}}ByID 根据ID获取一条
+func (m *default{{.upperStartCamelObject}}Model) Get{{.tableNameStr}}ById(ctx context.Context, id int64) (*{{.upperStartCamelObject}}, error) {
+	var resp {{.tableNameStr}}
+	query := fmt.Sprintf("select %s from %s where id=? delete_ts=0 LIMIT 1", {{.tableNameLower}}Rows, m.table)
+	if err := m.QueryRowNoCacheCtx(ctx, &resp, query, id); err != nil {
+		if err == sqlc.ErrNotFound {
+			return nil, ErrNotFound
+		}
+		return nil, err
+	}
+	return &resp, nil
 }
 
 // Get{{.tableNameStr}}ByWhere 根据条件获取列表数据
