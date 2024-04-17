@@ -38,49 +38,6 @@ func New{{.upperStartCamelObject}}Model(conn sqlx.SqlConn{{if .withCache}}, c ca
 	}
 }
 
-// Sum{{.tableNameStr}}ByWhere 根据条件统计数量
-func (m *default{{.upperStartCamelObject}}Model) Sum{{.tableNameStr}}ByWhere(ctx context.Context, field, where string, args ...any) int64 {
-	kk := where
-	for _, v := range args {
-		kk += fmt.Sprintf("%v", v)
-	}
-
-	resp := struct { C int64 }{}
-	query := fmt.Sprintf("select sum(%s) C from %s where deleteTs=0", field, m.table)
-	if where != "" {
-		if !strings.Contains(where, "deleteTs") {
-			where = "deleteTs=0 AND " + where
-		}
-		query = fmt.Sprintf("select sum(%s) C from %s where %s", field, m.table, where)
-	}
-	if err := m.QueryRowNoCacheCtx(ctx, &resp, query, args...); err != nil {
-		return 0
-	}
-	return resp.C
-}
-
-// Count{{.tableNameStr}}ByWhere 根据条件获取记录数
-func (m *default{{.upperStartCamelObject}}Model) Count{{.tableNameStr}}ByWhere(ctx context.Context, where string, args ...any) int64 {
-	kk := where
-	for _, v := range args {
-		kk += fmt.Sprintf("%v", v)
-	}
-	
-	resp := struct { C int64 }{}
-	query := fmt.Sprintf("select count(*) C from %s where deleteTs=0", m.table)
-	if where != "" {
-		if !strings.Contains(where, "deleteTs") {
-			where = "deleteTs=0 AND " + where
-		}
-		query = fmt.Sprintf("select count(*) C from %s where %s", m.table, where)
-	}
-	
-	if err := m.QueryRowNoCacheCtx(ctx, &resp, query, args...); err != nil {
-		return 0
-	}
-	return resp.C
-}
-
 // Get{{.tableNameStr}}ByID 根据ID获取一条
 func (m *default{{.upperStartCamelObject}}Model) Get{{.tableNameStr}}ById(ctx context.Context, id int64) (*{{.upperStartCamelObject}}, error) {
 	var resp {{.tableNameStr}}
@@ -148,4 +105,47 @@ func (m *default{{.upperStartCamelObject}}Model) Get{{.tableNameStr}}ListByWhere
 		return nil, err
 	}
 	return resp, nil
+}
+
+// Sum{{.tableNameStr}}ByWhere 根据条件统计数量
+func (m *default{{.upperStartCamelObject}}Model) Sum{{.tableNameStr}}ByWhere(ctx context.Context, field, where string, args ...any) int64 {
+	kk := where
+	for _, v := range args {
+		kk += fmt.Sprintf("%v", v)
+	}
+
+	resp := struct { C int64 }{}
+	query := fmt.Sprintf("select sum(%s) C from %s where deleteTs=0", field, m.table)
+	if where != "" {
+		if !strings.Contains(where, "deleteTs") {
+			where = "deleteTs=0 AND " + where
+		}
+		query = fmt.Sprintf("select sum(%s) C from %s where %s", field, m.table, where)
+	}
+	if err := m.QueryRowNoCacheCtx(ctx, &resp, query, args...); err != nil {
+		return 0
+	}
+	return resp.C
+}
+
+// Count{{.tableNameStr}}ByWhere 根据条件获取记录数
+func (m *default{{.upperStartCamelObject}}Model) Count{{.tableNameStr}}ByWhere(ctx context.Context, where string, args ...any) int64 {
+	kk := where
+	for _, v := range args {
+		kk += fmt.Sprintf("%v", v)
+	}
+	
+	resp := struct { C int64 }{}
+	query := fmt.Sprintf("select count(*) C from %s where deleteTs=0", m.table)
+	if where != "" {
+		if !strings.Contains(where, "deleteTs") {
+			where = "deleteTs=0 AND " + where
+		}
+		query = fmt.Sprintf("select count(*) C from %s where %s", m.table, where)
+	}
+	
+	if err := m.QueryRowNoCacheCtx(ctx, &resp, query, args...); err != nil {
+		return 0
+	}
+	return resp.C
 }
