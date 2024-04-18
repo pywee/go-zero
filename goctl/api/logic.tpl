@@ -2,17 +2,11 @@ package {{.pkgName}}
 
 import (
 	{{.imports}}{{if eq .function "Update"}}
-	"github.com/jinzhu/copier"
-	"gitea.bluettipower.com/bluettipower/zerocommon/converters"{{else if eq .function "Get"}}
-	"github.com/jinzhu/copier"
-	"gitea.bluettipower.com/bluettipower/zerocommon/converters"{{else if eq .function "Create"}}
+	"github.com/jinzhu/copier"{{else if eq .function "Get"}}
+	"github.com/jinzhu/copier"{{else if eq .function "Create"}}
 	"errors"
+	"github.com/jinzhu/copier"{{else if eq .function "List"}}
 	"github.com/jinzhu/copier"
-	"gitea.bluettipower.com/bluettipower/delivery-service/model"
-	"gitea.bluettipower.com/bluettipower/zerocommon/converters"{{else if eq .function "List"}}
-	"github.com/jinzhu/copier"
-	"gitea.bluettipower.com/bluettipower/delivery-service/model"
-	"gitea.bluettipower.com/bluettipower/zerocommon/converters"
 	{{end}}
 )
 
@@ -40,7 +34,7 @@ func (l *{{.logic}}) {{.function}}({{.request}}) {{.responseType}} {
 		return nil, err
 	}
 
-	if err = copier.CopyWithOption(ret, req, copier.Option{IgnoreEmpty: true, DeepCopy: true, Converters: []copier.TypeConverter{converters.ObjectIdToStringConverter(), converters.TimeToInt64()}}); err != nil {
+	if err = copier.CopyWithOption(ret, req, copier.Option{IgnoreEmpty: true, DeepCopy: true}); err != nil {
 		return nil, err
 	}
 
@@ -52,7 +46,7 @@ func (l *{{.logic}}) {{.function}}({{.request}}) {{.responseType}} {
 		return nil, err
 	}
 	var data types.Get{{.serviceName}}Resp
-	if err := copier.CopyWithOption(&data, ret, copier.Option{IgnoreEmpty: true, DeepCopy: true, Converters: []copier.TypeConverter{converters.ObjectIdToStringConverter(), converters.TimeToInt64()}}); err != nil {
+	if err := copier.CopyWithOption(&data, ret, copier.Option{IgnoreEmpty: true, DeepCopy: true}); err != nil {
 		return nil, err
 	}
 	return &data, nil{{else if eq .function "Create"}}sql := `conditions`
@@ -61,7 +55,7 @@ func (l *{{.logic}}) {{.function}}({{.request}}) {{.responseType}} {
 	}
 
 	var data model.{{.serviceName}}
-	if err := copier.CopyWithOption(&data, req, copier.Option{IgnoreEmpty: true, DeepCopy: true, Converters: []copier.TypeConverter{converters.StringToObjectIdConverter(), converters.TimeToInt64()}}); err != nil {
+	if err := copier.CopyWithOption(&data, req, copier.Option{IgnoreEmpty: true, DeepCopy: true}); err != nil {
 		return nil, err
 	}
 
@@ -69,21 +63,17 @@ func (l *{{.logic}}) {{.function}}({{.request}}) {{.responseType}} {
 	if err != nil {
 		return nil, err
 	}
-	return &types.Create{{.serviceName}}Resp{ID: id}, nil{{else if eq .function "List"}}sql := ""
-	if req.Status > 0 {
-		sql += `status=?`
-	}
-
-	var ret []*types.{{.serviceName}}Column
-	sql += model.ParseLimit(req.Current, req.Size)
-	list, total := l.svcCtx.{{.serviceName}}Model.Get{{.serviceName}}ListByWhere(l.ctx, sql, req.Status)
-	err := copier.CopyWithOption(&ret, &list, copier.Option{IgnoreEmpty: true, DeepCopy: true, Converters: []copier.TypeConverter{converters.ObjectIdToStringConverter(), converters.TimeToInt64()}})
+	return &types.Create{{.serviceName}}Resp{ID: id}, nil{{else if eq .function "List"}}var (
+		ret []*types.{{.serviceName}}Column
+		sql string
+	)
+	
+	// sql += model.ParseLimit(req.Current, req.Size)
+	list, total := l.svcCtx.{{.serviceName}}Model.Get{{.serviceName}}ListByWhere(l.ctx, sql)
+	err := copier.CopyWithOption(&ret, &list, copier.Option{IgnoreEmpty: true, DeepCopy: true})
 	if err != nil {
 		return nil, err
 	}
 
-	return &types.Get{{.serviceName}}ListResp{
-		Total: total,
-		List:  ret,
-	}, nil{{else}}return &types.{{.responseTypeName}}{}, nil{{end}}
+	return &types.Get{{.serviceName}}ListResp {Total: total, List:  ret}, nil{{else}}return &types.{{.responseTypeName}}{}, nil{{end}}
 }

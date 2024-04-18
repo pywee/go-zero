@@ -100,6 +100,10 @@ func genLogicImports(route spec.Route, parentPkg string) string {
 	if shallImportTypesPackage(route) {
 		imports = append(imports, fmt.Sprintf("\"%s\"\n", pathx.JoinPackages(parentPkg, typesDir)))
 	}
+	//if idx := strings.LastIndex(parentPkg, "/"); idx != -1 {
+	// fmt.Println(">>>>", parentPkg[:idx])
+	//imports = append(imports, fmt.Sprintf(`"%s"`, parentPkg[:idx]+"/model"))
+	//}
 	imports = append(imports, fmt.Sprintf("\"%s/core/logx\"", vars.ProjectOpenSourceURL))
 	return strings.Join(imports, "\n\t")
 }
