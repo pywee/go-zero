@@ -47,7 +47,9 @@ func (m *custom{{.upperStartCamelObject}}Model) Get{{.upperStartCamelObject}}ByI
 	if err := m.c.Raw(query, id).Scan(&resp).Error; err != nil {
 		return nil, err
 	}
-
+	if resp.Id == 0 {
+		return nil, nil
+	}
 	return &resp, nil
 }
 
@@ -71,6 +73,10 @@ func (m *custom{{.upperStartCamelObject}}Model) Get{{.upperStartCamelObject}}ByW
 	if err := m.c.Raw(query, args...).Scan(&resp).Error; err != nil {
 		return nil, err
 	}
+	if resp.Id == 0 {
+		return nil, nil
+	}
+
 	return &resp, nil
 }
 
