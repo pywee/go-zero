@@ -39,6 +39,7 @@ type (
 		importsCode string
 		varsCode    string
 		typesCode   string
+		types2Code  string
 		newCode     string
 		insertCode  string
 		findCode    []string
@@ -142,6 +143,13 @@ func (g *defaultGenerator) StartFromInformationSchema(tables map[string]*model.T
 	}
 
 	return g.createFile(m)
+}
+
+// case2CamelS 下划线转驼峰
+func case2CamelS(name string) string {
+	name = strings.Replace(name, "_", " ", -1)
+	name = strings.Title(name)
+	return strings.Replace(name, " ", "", -1)
 }
 
 func (g *defaultGenerator) createFile(modelList map[string]*codeTuple) error {
@@ -323,10 +331,21 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 		return "", err
 	}
 
+	s := `type ` + table.Name.Title() + ` struct {
+`
+	for _, v := range table.Fields {
+		if v.Comment != "" {
+			v.Comment = "// " + v.Comment
+		}
+		s += fmt.Sprintf("	%s	%s	`gorm:\"column:%s\" json:\"%s\"` %s\n", case2CamelS(v.NameOriginal), v.DataType, v.Name.Source(), v.Name.Source(), v.Comment)
+	}
+	s += "\n}"
+
 	code := &code{
 		importsCode: importsCode,
 		varsCode:    varsCode,
 		typesCode:   typesCode,
+		types2Code:  s,
 		newCode:     newCode,
 		insertCode:  insertCode,
 		findCode:    findCode,
@@ -377,6 +396,7 @@ func (g *defaultGenerator) executeModel(table Table, code *code) (*bytes.Buffer,
 		Parse(text).
 		GoFmt(true)
 	output, err := t.Execute(map[string]any{
+		"types2":       code.types2Code,
 		"pkg":          g.pkg,
 		"imports":      code.importsCode,
 		"vars":         code.varsCode,

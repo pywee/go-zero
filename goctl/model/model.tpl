@@ -4,148 +4,142 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"gorm.io/gorm"
 	"github.com/zeromicro/go-zero/core/stores/cache"
-	"github.com/zeromicro/go-zero/core/stores/sqlc"
-	"github.com/zeromicro/go-zero/core/stores/sqlx"
 )
 {{else}}
-
 import "github.com/zeromicro/go-zero/core/stores/sqlx"
 {{end}}
 var _ {{.upperStartCamelObject}}Model = (*custom{{.upperStartCamelObject}}Model)(nil)
 
+// 2024.04.18 修改
 type (
-	// {{.upperStartCamelObject}}Model is an interface to be customized, add more methods here,
-	// and implement the added methods in custom{{.upperStartCamelObject}}Model.
 	{{.upperStartCamelObject}}Model interface {
-		{{.lowerStartCamelObject}}Model
-		Get{{.tableNameStr}}ById(context.Context, int64) (*{{.upperStartCamelObject}}, error)
-		Get{{.tableNameStr}}ByWhere(context.Context, string, ...any) (*{{.upperStartCamelObject}}, error)
-		Get{{.tableNameStr}}ListByWhere(context.Context, string, ...any) ([]*{{.upperStartCamelObject}}, error)
-		Sum{{.tableNameStr}}ByWhere(context.Context, string, string, ...any) int64
-		Count{{.tableNameStr}}ByWhere(context.Context, string, ...any) int64
+		Insert(context.Context, *{{.upperStartCamelObject}}) (int64, error)
+		Get{{.upperStartCamelObject}}ById(context.Context, string, int64) (*{{.upperStartCamelObject}}, error)
+		Get{{.upperStartCamelObject}}ByWhere(context.Context, string, string, ...any) (*{{.upperStartCamelObject}}, error)
+		Count{{.upperStartCamelObject}}ByWhere(context.Context, string, ...any) (int64, error)
+		Sum{{.upperStartCamelObject}}ByWhere(context.Context, string, string, ...any) (int64, error)
+		Get{{.upperStartCamelObject}}ByWhereList(context.Context, string, string, ...any) ([]*{{.upperStartCamelObject}}, error)
 	}
 
 	custom{{.upperStartCamelObject}}Model struct {
-		*default{{.upperStartCamelObject}}Model
+		table string
+		c *gorm.DB
 	}
 )
 
 // New{{.upperStartCamelObject}}Model returns a model for the database table.
-func New{{.upperStartCamelObject}}Model(conn sqlx.SqlConn{{if .withCache}}, c cache.CacheConf, opts ...cache.Option{{end}}) {{.upperStartCamelObject}}Model {
+func New{{.upperStartCamelObject}}Model(conn *gorm.DB{{if .withCache}}, c cache.CacheConf, opts ...cache.Option{{end}}) {{.upperStartCamelObject}}Model {
 	return &custom{{.upperStartCamelObject}}Model{
-		default{{.upperStartCamelObject}}Model: new{{.upperStartCamelObject}}Model(conn{{if .withCache}}, c, opts...{{end}}),
+		c: conn,
+		table: "{{.lowerStartCamelObject}}",
 	}
 }
 
-// Get{{.tableNameStr}}ByID 根据ID获取一条
-func (m *default{{.upperStartCamelObject}}Model) Get{{.tableNameStr}}ById(ctx context.Context, id int64) (*{{.upperStartCamelObject}}, error) {
-	var resp {{.tableNameStr}}
-	query := fmt.Sprintf("select %s from %s where id=? AND deleteTs=0 LIMIT 1", {{.tableNameLower}}Rows, m.table)
-	if err := m.QueryRowNoCacheCtx(ctx, &resp, query, id); err != nil {
-		if err == sqlc.ErrNotFound {
-			return nil, ErrNotFound
-		}
+// Get{{.upperStartCamelObject}}ByID 根据ID获取一条
+func (m *custom{{.upperStartCamelObject}}Model) Get{{.upperStartCamelObject}}ById(ctx context.Context, fields string, id int64) (*{{.upperStartCamelObject}}, error) {
+	var resp {{.upperStartCamelObject}}
+	if fields == "" {
+		fields = "*"
+	}
+	query := fmt.Sprintf("select %s from %s where id=? AND deleteTs=0", fields, m.table)
+	if err := m.c.Raw(query, id).Scan(&resp).Error; err != nil {
+		return nil, err
+	}
+
+	return &resp, nil
+}
+
+// Get{{.upperStartCamelObject}}ByID 根据条件获取一条
+func (m *custom{{.upperStartCamelObject}}Model) Get{{.upperStartCamelObject}}ByWhere(ctx context.Context, fields, where string, args ...any) (*{{.upperStartCamelObject}}, error) {
+	var resp {{.upperStartCamelObject}}
+	if fields == "" {
+		fields = "*"
+	}
+	if !strings.Contains(where, "deleteTs") {
+		where = "where deleteTs=0 AND " + where
+		where = strings.TrimSuffix(where, "AND ")
+	} else if where != "" {
+		where = "where " + where
+	}
+	if !strings.Contains(where, strings.ToLower("limit ")) {
+		where += " LIMIT 1"
+	}
+
+	query := fmt.Sprintf("select %s from `%s` %s", fields, m.table, where)
+	if err := m.c.Raw(query, args...).Scan(&resp).Error; err != nil {
 		return nil, err
 	}
 	return &resp, nil
 }
 
-// Get{{.tableNameStr}}ByWhere 根据条件获取列表数据
-func (m *default{{.upperStartCamelObject}}Model) Get{{.tableNameStr}}ByWhere(ctx context.Context, where string, args ...any) (*{{.upperStartCamelObject}}, error) {
-	kk := where
-	for _, v := range args {
-		kk += fmt.Sprintf("%v", v)
+// Get{{.upperStartCamelObject}}ByID 根据条件获取多条记录
+func (m *custom{{.upperStartCamelObject}}Model) Get{{.upperStartCamelObject}}ByWhereList(ctx context.Context, fields, where string, args ...any) ([]*{{.upperStartCamelObject}}, error) {
+	var resp []*{{.upperStartCamelObject}}
+	if fields == "" {
+		fields = "*"
+	}
+	if !strings.Contains(where, "deleteTs") {
+		where = "where deleteTs=0 AND " + where
+		where = strings.TrimSuffix(where, "AND ")
+	} else if where != "" {
+		where = "where " + where
 	}
 
-	var resp {{.tableNameStr}}
-	query := fmt.Sprintf("select %s from %s where deleteTs=0 LIMIT 1", {{.tableNameLower}}Rows, m.table)
-	if where != "" {
-		if !strings.Contains(where, "deleteTs") {
-			where = "deleteTs=0 AND " + where
-		}
-		query = fmt.Sprintf("select %s from %s where %s LIMIT 1", {{.tableNameLower}}Rows, m.table, where)
-	}
-	err := m.QueryRowNoCacheCtx(ctx, &resp, query, args...)
-
-	if err != nil {
-		if err == sqlc.ErrNotFound {
-			return nil, ErrNotFound
-		}
-		return nil, err
-	}
-	return &resp, nil
-}
-
-// Get{{.tableNameStr}}ListByWhere 根据条件获取列表数据
-func (m *default{{.upperStartCamelObject}}Model) Get{{.tableNameStr}}ListByWhere(ctx context.Context, where string, args ...any) ([]*{{.upperStartCamelObject}}, error) {
-	kk := where
-	for _, v := range args {
-		kk += fmt.Sprintf("%v", v)
-	}
-
-	// key := fmt.Sprintf("%x", md5.Sum([]byte(kk)))
-	// bluettiPointsRecordIdKey := fmt.Sprintf("%s%s", cacheBluettiPointsRecordIdPrefix, key)
-	// _ = bluettiPointsRecordIdKey
-
-	var resp []*{{.tableNameStr}}
-	query := fmt.Sprintf("select %s from %s where deleteTs=0", {{.tableNameLower}}Rows, m.table)
-	if where != "" {
-		if !strings.Contains(where, "deleteTs") {
-			where = "deleteTs=0 AND " + where
-		}
-		query = fmt.Sprintf("select %s from %s where %s", {{.tableNameLower}}Rows, m.table, where)
-	}
-	err := m.QueryRowsNoCacheCtx(ctx, &resp, query, args...)
-
-	if err != nil {
-		if err == sqlc.ErrNotFound {
-			return nil, ErrNotFound
-		}
+	query := fmt.Sprintf("select %s from `%s` %s", fields, m.table, where)
+	if err := m.c.Raw(query, args...).Scan(&resp).Error; err != nil {
 		return nil, err
 	}
 	return resp, nil
 }
 
-// Sum{{.tableNameStr}}ByWhere 根据条件统计数量
-func (m *default{{.upperStartCamelObject}}Model) Sum{{.tableNameStr}}ByWhere(ctx context.Context, field, where string, args ...any) int64 {
-	kk := where
-	for _, v := range args {
-		kk += fmt.Sprintf("%v", v)
+// Count{{.upperStartCamelObject}}ByWhere 根据条件计数
+func (m *custom{{.upperStartCamelObject}}Model) Count{{.upperStartCamelObject}}ByWhere(ctx context.Context, where string, args ...any) (int64, error) {
+	var resp struct {
+		C int64 `gorm:"column:c" json:"c"`
 	}
 
-	resp := struct { C int64 }{}
-	query := fmt.Sprintf("select sum(%s) C from %s where deleteTs=0", field, m.table)
-	if where != "" {
-		if !strings.Contains(where, "deleteTs") {
-			where = "deleteTs=0 AND " + where
-		}
-		query = fmt.Sprintf("select sum(%s) C from %s where %s", field, m.table, where)
+	if !strings.Contains(where, "deleteTs") {
+		where = "where deleteTs=0 AND " + where
+		where = strings.TrimSuffix(where, "AND ")
+	} else if where != "" {
+		where = "where " + where
 	}
-	if err := m.QueryRowNoCacheCtx(ctx, &resp, query, args...); err != nil {
-		return 0
+
+	query := fmt.Sprintf("select count(*) c from `%s` %s", m.table, where)
+	if err := m.c.Raw(query, args...).Scan(&resp).Error; err != nil {
+		return 0, err
 	}
-	return resp.C
+	return resp.C, nil
 }
 
-// Count{{.tableNameStr}}ByWhere 根据条件获取记录数
-func (m *default{{.upperStartCamelObject}}Model) Count{{.tableNameStr}}ByWhere(ctx context.Context, where string, args ...any) int64 {
-	kk := where
-	for _, v := range args {
-		kk += fmt.Sprintf("%v", v)
+// Count{{.upperStartCamelObject}}ByWhere 根据条件统计多条记录
+func (m *custom{{.upperStartCamelObject}}Model) Sum{{.upperStartCamelObject}}ByWhere(ctx context.Context, sumField, where string, args ...any) (int64, error) {
+	var resp struct {
+		S int64 `gorm:"column:s" json:"s"`
 	}
-	
-	resp := struct { C int64 }{}
-	query := fmt.Sprintf("select count(*) C from %s where deleteTs=0", m.table)
-	if where != "" {
-		if !strings.Contains(where, "deleteTs") {
-			where = "deleteTs=0 AND " + where
-		}
-		query = fmt.Sprintf("select count(*) C from %s where %s", m.table, where)
+
+	if !strings.Contains(where, "deleteTs") {
+		where = "where deleteTs=0 AND " + where
+		where = strings.TrimSuffix(where, "AND ")
+	} else if where != "" {
+		where = "where " + where
 	}
-	
-	if err := m.QueryRowNoCacheCtx(ctx, &resp, query, args...); err != nil {
-		return 0
+
+	query := fmt.Sprintf("select sum(%s) s from `%s` %s", sumField, m.table, where)
+	if err := m.c.Raw(query, args...).Scan(&resp).Error; err != nil {
+		return 0, err
 	}
-	return resp.C
+	return resp.S, nil
 }
+
+// Insert 新增
+func (m *custom{{.upperStartCamelObject}}Model) Insert(ctx context.Context, data *{{.upperStartCamelObject}}) (int64, error) {
+	ret := m.c.Table(m.table).Create(data)
+	if err := ret.Error; err != nil {
+		return 0, err
+	}
+	return ret.RowsAffected, nil
+}
+
