@@ -16,6 +16,7 @@ var _ {{.upperStartCamelObject}}Model = (*custom{{.upperStartCamelObject}}Model)
 type (
 	{{.upperStartCamelObject}}Model interface {
 		Insert(context.Context, *{{.upperStartCamelObject}}) (int64, error)
+		Update(context.Context, *{{.upperStartCamelObject}}) (int64, error)
 		Get{{.upperStartCamelObject}}ById(context.Context, string, int64) (*{{.upperStartCamelObject}}, error)
 		Get{{.upperStartCamelObject}}ByWhere(context.Context, string, string, ...any) (*{{.upperStartCamelObject}}, error)
 		Count{{.upperStartCamelObject}}ByWhere(context.Context, string, ...any) (int64, error)
@@ -149,3 +150,11 @@ func (m *custom{{.upperStartCamelObject}}Model) Insert(ctx context.Context, data
 	return ret.RowsAffected, nil
 }
 
+// Update 更新
+func (m *custom{{.upperStartCamelObject}}Model) Update(ctx context.Context, data *{{.upperStartCamelObject}}) (int64, error) {
+	ret := m.c.Table(m.table).Save(data)
+	if err := ret.Error; err != nil {
+		return 0, err
+	}
+	return ret.RowsAffected, nil
+}
