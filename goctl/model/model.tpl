@@ -3,6 +3,7 @@ package {{.pkg}}
 import (
 	"context"
 	"fmt"
+	"time"
 	"strings"
 	"gorm.io/gorm"
 	"github.com/zeromicro/go-zero/core/stores/cache"
@@ -143,6 +144,11 @@ func (m *custom{{.upperStartCamelObject}}Model) Sum{{.upperStartCamelObject}}ByW
 
 // Insert 新增
 func (m *custom{{.upperStartCamelObject}}Model) Insert(ctx context.Context, data *{{.upperStartCamelObject}}) (int64, error) {
+	if data.CreateTs == 0 {
+		ts := time.Now().Unix()
+		data.CreateTs = ts
+		data.UpdateTs = ts
+	}
 	ret := m.c.Table(m.table).Create(data)
 	if err := ret.Error; err != nil {
 		return 0, err
