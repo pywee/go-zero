@@ -2,11 +2,10 @@ package {{.PkgName}}
 
 import (
 	"net/http"
-
+	"context"
 	"github.com/pywee/mw/utils"
 	"github.com/zeromicro/go-zero/rest/httpx"
 	// "gitea.bluettipower.com/bluettipower/zerocommon/response"
-	
 	{{.ImportPackages}}
 )
 
@@ -19,6 +18,9 @@ func {{.HandlerName}}(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		}{{end}}
 
 		utils.TrimStringFields(&req)
+		if token := r.Header.Get("f"); token != "" {
+			r = r.WithContext(context.WithValue(r.Context(), utils.ContextType("token"), token))
+		}
 		l := {{.LogicName}}.New{{.LogicType}}(r.Context(), svcCtx)
 		{{if .HasResp}}resp, {{end}}err := l.{{.Call}}({{if .HasRequest}}&req{{end}})
 		utils.JSON(w, resp, err)
