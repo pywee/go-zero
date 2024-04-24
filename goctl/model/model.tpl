@@ -45,7 +45,7 @@ func (m *custom{{.upperStartCamelObject}}Model) Get{{.upperStartCamelObject}}ByI
 	if fields == "" {
 		fields = "*"
 	}
-	query := fmt.Sprintf("select %s from %s where id=? AND deleteTs=0", fields, m.table)
+	query := fmt.Sprintf("select %s from `%s` where id=? AND deleteTs=0", fields, m.table)
 	if err := m.c.Raw(query, id).Scan(&resp).Error; err != nil {
 		return nil, err
 	}
