@@ -17,7 +17,8 @@ var _ {{.upperStartCamelObject}}Model = (*custom{{.upperStartCamelObject}}Model)
 type (
 	{{.upperStartCamelObject}}Model interface {
 		Insert(context.Context, *{{.upperStartCamelObject}}) (int64, error)
-		Update(context.Context, *{{.upperStartCamelObject}}) (int64, error)
+		Update(context.Context, *{{.upperStartCamelObject}}) error
+		Updates(context.Context, map[string]any, string, ...any) (int64, error)
 		Get{{.upperStartCamelObject}}ById(context.Context, string, int64) (*{{.upperStartCamelObject}}, error)
 		Get{{.upperStartCamelObject}}ByWhere(context.Context, string, string, ...any) (*{{.upperStartCamelObject}}, error)
 		Count{{.upperStartCamelObject}}ByWhere(context.Context, string, ...any) (int64, error)
@@ -160,8 +161,14 @@ func (m *custom{{.upperStartCamelObject}}Model) Insert(ctx context.Context, data
 }
 
 // Update 更新
-func (m *custom{{.upperStartCamelObject}}Model) Update(ctx context.Context, data *{{.upperStartCamelObject}}) (int64, error) {
+func (m *custom{{.upperStartCamelObject}}Model) Update(ctx context.Context, data *{{.upperStartCamelObject}}) error {
 	ret := m.c.Table(m.table).Save(data)
+	return ret.Error
+}
+
+// UpdateMap 根据条件批量更新
+func (m *custom{{.upperStartCamelObject}}Model) Updates(ctx context.Context, data map[string]any, where string, args ...any) (int64, error) {
+	ret := m.c.Table(m.table).Where(where, args...).Updates(data)
 	if err := ret.Error; err != nil {
 		return 0, err
 	}
