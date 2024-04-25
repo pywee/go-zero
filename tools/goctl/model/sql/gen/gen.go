@@ -337,7 +337,16 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 		if v.Comment != "" {
 			v.Comment = "// " + v.Comment
 		}
-		s += fmt.Sprintf("	%s	%s	`gorm:\"column:%s\" json:\"%s\"` %s\n", case2CamelS(v.NameOriginal), v.DataType, v.Name.Source(), v.Name.Source(), v.Comment)
+
+		columnName := case2CamelS(v.NameOriginal)
+		if clen := len(columnName); clen >= 2 {
+			lastFix := strings.ToLower(columnName[clen-2:])
+			if lastFix == "id" || lastFix == "ts" {
+				v.DataType = "int64"
+			}
+		}
+
+		s += fmt.Sprintf("	%s	%s	`gorm:\"column:%s\" json:\"%s\"` %s\n", columnName, v.DataType, v.Name.Source(), v.Name.Source(), v.Comment)
 	}
 	s += "\n}"
 

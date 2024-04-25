@@ -149,11 +149,14 @@ func (m *custom{{.upperStartCamelObject}}Model) Insert(ctx context.Context, data
 		data.CreateTs = ts
 		data.UpdateTs = ts
 	}
+
 	ret := m.c.Table(m.table).Create(data)
 	if err := ret.Error; err != nil {
 		return 0, err
 	}
-	return ret.RowsAffected, nil
+
+	// return ret.RowsAffected, nil
+	return data.Id, nil
 }
 
 // Update 更新
