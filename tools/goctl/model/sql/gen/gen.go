@@ -348,7 +348,7 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 
 		s += fmt.Sprintf("	%s	%s	`gorm:\"column:%s\" json:\"%s\"` %s\n", columnName, v.DataType, v.Name.Source(), v.Name.Source(), v.Comment)
 	}
-	s += "\n}"
+	s += "}"
 
 	code := &code{
 		importsCode: importsCode,
