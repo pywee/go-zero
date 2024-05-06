@@ -17,15 +17,15 @@ var _ {{.upperStartCamelObject}}Model = (*custom{{.upperStartCamelObject}}Model)
 type (
 	{{.upperStartCamelObject}}Model interface {
 		Insert(context.Context, *{{.upperStartCamelObject}}) (int64, error)
-		Update(context.Context, *{{.upperStartCamelObject}}) error
-		DeleteByID(context.Context, int64) (int64, error)
-		Updates(context.Context, map[string]any, string, ...any) (int64, error)
-		DeleteMany(context.Context, string, ...any) (int64, error)
 		Get{{.upperStartCamelObject}}ById(context.Context, string, int64) (*{{.upperStartCamelObject}}, error)
 		Get{{.upperStartCamelObject}}ByWhere(context.Context, string, string, ...any) (*{{.upperStartCamelObject}}, error)
+		Get{{.upperStartCamelObject}}ByWhereList(context.Context, string, string, ...any) ([]*{{.upperStartCamelObject}}, error)
+		Update(context.Context, *{{.upperStartCamelObject}}) error
+		Updates(context.Context, map[string]any, string, ...any) (int64, error)
 		Count{{.upperStartCamelObject}}ByWhere(context.Context, string, ...any) (int64, error)
 		Sum{{.upperStartCamelObject}}ByWhere(context.Context, string, string, ...any) (int64, error)
-		Get{{.upperStartCamelObject}}ByWhereList(context.Context, string, string, ...any) ([]*{{.upperStartCamelObject}}, error)
+		DeleteByID(context.Context, int64) (int64, error)
+		DeleteMany(context.Context, string, ...any) (int64, error)
 	}
 
 	custom{{.upperStartCamelObject}}Model struct {
@@ -70,7 +70,7 @@ func (m *custom{{.upperStartCamelObject}}Model) Get{{.upperStartCamelObject}}ByW
 	} else if where != "" {
 		where = "where " + where
 	}
-	if !strings.Contains(where, strings.ToLower("limit ")) {
+	if !strings.Contains(strings.ToLower(where), "limit ") {
 		where += " LIMIT 1"
 	}
 
