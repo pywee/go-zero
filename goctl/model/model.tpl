@@ -162,6 +162,9 @@ func (m *custom{{.upperStartCamelObject}}Model) Insert(ctx context.Context, data
 
 // Update 更新
 func (m *custom{{.upperStartCamelObject}}Model) Update(ctx context.Context, data *{{.upperStartCamelObject}}) error {
+	if data.UpdateTs == 0 {
+		data.UpdateTs = time.Now().Unix()
+	}
 	ret := m.c.Table(m.table).Save(data)
 	return ret.Error
 }
