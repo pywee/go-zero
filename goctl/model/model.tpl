@@ -18,7 +18,9 @@ type (
 	{{.upperStartCamelObject}}Model interface {
 		Insert(context.Context, *{{.upperStartCamelObject}}) (int64, error)
 		Update(context.Context, *{{.upperStartCamelObject}}) error
+		DeleteByID(context.Context, int64) (int64, error)
 		Updates(context.Context, map[string]any, string, ...any) (int64, error)
+		DeleteMany(context.Context, string, ...any) (int64, error)
 		Get{{.upperStartCamelObject}}ById(context.Context, string, int64) (*{{.upperStartCamelObject}}, error)
 		Get{{.upperStartCamelObject}}ByWhere(context.Context, string, string, ...any) (*{{.upperStartCamelObject}}, error)
 		Count{{.upperStartCamelObject}}ByWhere(context.Context, string, ...any) (int64, error)
@@ -175,6 +177,26 @@ func (m *custom{{.upperStartCamelObject}}Model) Updates(ctx context.Context, dat
 		data["updateTs"] = time.Now().Unix()
 	}
 	ret := m.c.Table(m.table).Where(where, args...).Updates(data)
+	if err := ret.Error; err != nil {
+		return 0, err
+	}
+	return ret.RowsAffected, nil
+}
+
+// DeleteByID 根据 ID 删除记录
+func (m *custom{{.upperStartCamelObject}}Model) DeleteByID(ctx context.Context, ID int64) (int64, error) {
+	ts := time.Now().Unix()
+	ret := m.c.Exec("UPDATE `" + m.table + "` SET deleteTs=?,updateTs=? WHERE id=?", ts, ts, ID)
+	return ret.RowsAffected, ret.Error
+}
+
+// DeleteMany 根据条件批量删除
+func (m *custom{{.upperStartCamelObject}}Model) DeleteMany(ctx context.Context, where string, args ...any) (int64, error) {
+	ts := time.Now().Unix()
+	ret := m.c.Table(m.table).Where(where, args...).Updates(map[string]any{
+		"updateTs": ts,
+		"deleteTs": ts,
+	})
 	if err := ret.Error; err != nil {
 		return 0, err
 	}
