@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/zeromicro/go-zero/tools/goctl/config"
+	"github.com/zeromicro/go-zero/tools/goctl/internal/version"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/model"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/parser"
 	"github.com/zeromicro/go-zero/tools/goctl/model/sql/template"
@@ -163,6 +164,15 @@ func (g *defaultGenerator) createFile(modelList map[string]*codeTuple) error {
 	err = pathx.MkdirIfNotExist(dirAbs)
 	if err != nil {
 		return err
+	}
+
+	name, _ := pathx.GetDefaultGoctlHome()
+	commonSQL := name + "/" + version.BuildVersion + "/model/common.tpl"
+	bs, err := os.ReadFile(commonSQL)
+	if err == nil && len(bs) > 0 {
+		if err = os.WriteFile(dirAbs+"/common.go", bs, os.ModePerm); err != nil {
+			return err
+		}
 	}
 
 	for tableName, codes := range modelList {
