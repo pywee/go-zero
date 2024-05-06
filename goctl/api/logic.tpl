@@ -22,7 +22,7 @@ func New{{.logic}}(ctx context.Context, svcCtx *svc.ServiceContext) *{{.logic}} 
 		ctx:    ctx,
 		svcCtx: svcCtx,
 		Uid: svcCtx.UID(ctx),
-		Logger: logx.WithContext(ctx),
+		// Logger: logx.WithContext(ctx),
 	}
 }
 
