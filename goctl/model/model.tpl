@@ -171,6 +171,9 @@ func (m *custom{{.upperStartCamelObject}}Model) Update(ctx context.Context, data
 
 // UpdateMap 根据条件批量更新
 func (m *custom{{.upperStartCamelObject}}Model) Updates(ctx context.Context, data map[string]any, where string, args ...any) (int64, error) {
+	if _, ok := data["updateTs"]; !ok {
+		data["updateTs"] = time.Now().Unix()
+	}
 	ret := m.c.Table(m.table).Where(where, args...).Updates(data)
 	if err := ret.Error; err != nil {
 		return 0, err
