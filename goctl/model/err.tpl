@@ -1,13 +1,20 @@
 package {{.pkg}}
 
-import "github.com/zeromicro/go-zero/core/stores/sqlx"
+import (
+	"errors"
 
-var ErrNotFound = sqlx.ErrNotFound
+	"github.com/zeromicro/go-zero/core/stores/sqlx"
+)
+
+var (
+	ErrNotFound    = sqlx.ErrNotFound
+	NotFoundRecord = errors.New("找不到数据")
+)
 
 func IsErr(err error) bool {
-    return err != nil && err != sqlx.ErrNotFound
+	return err != nil && err != sqlx.ErrNotFound
 }
 
 func IsNotFound(err error) bool {
-    return err == sqlx.ErrNotFound
+	return err == sqlx.ErrNotFound
 }
