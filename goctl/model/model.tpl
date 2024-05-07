@@ -58,7 +58,7 @@ func (m *custom{{.upperStartCamelObject}}Model) Get{{.upperStartCamelObject}}ByI
 	return &resp, nil
 }
 
-// Get{{.upperStartCamelObject}}ByWhere 根据条件获取一条
+// Get{{.upperStartCamelObject}}ByWhere 根据条件获取一条记录
 func (m *custom{{.upperStartCamelObject}}Model) Get{{.upperStartCamelObject}}ByWhere(ctx context.Context, fields, where string, args ...any) (*{{.upperStartCamelObject}}, error) {
 	var resp {{.upperStartCamelObject}}
 	if fields == "" {
@@ -79,7 +79,7 @@ func (m *custom{{.upperStartCamelObject}}Model) Get{{.upperStartCamelObject}}ByW
 		return nil, err
 	}
 	if resp.Id == 0 {
-		return nil, NotFoundRecord
+		return nil, nil
 	}
 
 	return &resp, nil
