@@ -348,10 +348,12 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 			v.Comment = "// " + v.Comment
 		}
 
+		// fmt.Println(v, v.DataType)
+
 		columnName := case2CamelS(v.NameOriginal)
 		if clen := len(columnName); clen >= 2 {
 			lastFix := strings.ToLower(columnName[clen-2:])
-			if lastFix == "id" || lastFix == "ts" {
+			if v.DataType != "string" && (lastFix == "id" || lastFix == "ts") {
 				v.DataType = "int64"
 			}
 		}
