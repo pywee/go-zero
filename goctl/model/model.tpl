@@ -1,7 +1,6 @@
 package {{.pkg}}
 {{if .withCache}}
 import (
-	"context"
 	"fmt"
 	"time"
 	"strings"
@@ -17,16 +16,16 @@ var _ {{.upperStartCamelObject}}Model = (*custom{{.upperStartCamelObject}}Model)
 // 2024.04.18 修改
 type (
 	{{.upperStartCamelObject}}Model interface {
-		Insert(context.Context, *{{.upperStartCamelObject}}) (int64, error)
-		Get{{.upperStartCamelObject}}ById(context.Context, string, int64) (*{{.upperStartCamelObject}}, error)
-		Get{{.upperStartCamelObject}}ByWhere(context.Context, string, string, ...any) (*{{.upperStartCamelObject}}, error)
-		Get{{.upperStartCamelObject}}ByWhereList(context.Context, string, string, ...any) ([]*{{.upperStartCamelObject}}, error)
-		Update(context.Context, *{{.upperStartCamelObject}}) error
-		Updates(context.Context, map[string]any, string, ...any) (int64, error)
-		Count{{.upperStartCamelObject}}ByWhere(context.Context, string, ...any) (int64, error)
-		Sum{{.upperStartCamelObject}}ByWhere(context.Context, string, string, ...any) (int64, error)
-		DeleteByID(context.Context, int64) (int64, error)
-		DeleteMany(context.Context, string, ...any) (int64, error)
+		Insert(*{{.upperStartCamelObject}}) (int64, error)
+		Get{{.upperStartCamelObject}}ById(string, int64) (*{{.upperStartCamelObject}}, error)
+		Get{{.upperStartCamelObject}}ByWhere(string, string, ...any) (*{{.upperStartCamelObject}}, error)
+		Get{{.upperStartCamelObject}}ByWhereList(string, string, ...any) ([]*{{.upperStartCamelObject}}, error)
+		Update(*{{.upperStartCamelObject}}) error
+		Updates(map[string]any, string, ...any) (int64, error)
+		Count{{.upperStartCamelObject}}ByWhere(string, ...any) (int64, error)
+		Sum{{.upperStartCamelObject}}ByWhere(string, string, ...any) (int64, error)
+		DeleteByID(int64) (int64, error)
+		DeleteMany(string, ...any) (int64, error)
 	}
 
 	custom{{.upperStartCamelObject}}Model struct {
@@ -46,7 +45,7 @@ func New{{.upperStartCamelObject}}Model(conn *gorm.DB{{if .withCache}}, rds *rCa
 }
 
 // Get{{.upperStartCamelObject}}ByID 根据ID获取一条
-func (m *custom{{.upperStartCamelObject}}Model) Get{{.upperStartCamelObject}}ById(ctx context.Context, fields string, id int64) (*{{.upperStartCamelObject}}, error) {
+func (m *custom{{.upperStartCamelObject}}Model) Get{{.upperStartCamelObject}}ById(fields string, id int64) (*{{.upperStartCamelObject}}, error) {
 	var resp {{.upperStartCamelObject}}
 	key := fmt.Sprintf("model:table:%s:cache:id:%d", m.table, id)
 	if ok, _ := m.rds.GetCache(key, &resp); ok {
@@ -69,7 +68,7 @@ func (m *custom{{.upperStartCamelObject}}Model) Get{{.upperStartCamelObject}}ByI
 }
 
 // Get{{.upperStartCamelObject}}ByWhere 根据条件获取一条记录
-func (m *custom{{.upperStartCamelObject}}Model) Get{{.upperStartCamelObject}}ByWhere(ctx context.Context, fields, where string, args ...any) (*{{.upperStartCamelObject}}, error) {
+func (m *custom{{.upperStartCamelObject}}Model) Get{{.upperStartCamelObject}}ByWhere(fields, where string, args ...any) (*{{.upperStartCamelObject}}, error) {
 	var resp {{.upperStartCamelObject}}
 	if fields == "" {
 		fields = "*"
@@ -96,7 +95,7 @@ func (m *custom{{.upperStartCamelObject}}Model) Get{{.upperStartCamelObject}}ByW
 }
 
 // Get{{.upperStartCamelObject}}ByWhereList 根据条件获取多条记录
-func (m *custom{{.upperStartCamelObject}}Model) Get{{.upperStartCamelObject}}ByWhereList(ctx context.Context, fields, where string, args ...any) ([]*{{.upperStartCamelObject}}, error) {
+func (m *custom{{.upperStartCamelObject}}Model) Get{{.upperStartCamelObject}}ByWhereList(fields, where string, args ...any) ([]*{{.upperStartCamelObject}}, error) {
 	var resp []*{{.upperStartCamelObject}}
 	if fields == "" {
 		fields = "*"
@@ -116,7 +115,7 @@ func (m *custom{{.upperStartCamelObject}}Model) Get{{.upperStartCamelObject}}ByW
 }
 
 // Count{{.upperStartCamelObject}}ByWhere 根据条件计数
-func (m *custom{{.upperStartCamelObject}}Model) Count{{.upperStartCamelObject}}ByWhere(ctx context.Context, where string, args ...any) (int64, error) {
+func (m *custom{{.upperStartCamelObject}}Model) Count{{.upperStartCamelObject}}ByWhere(where string, args ...any) (int64, error) {
 	var resp struct {
 		C int64 `gorm:"column:c" json:"c"`
 	}
@@ -136,7 +135,7 @@ func (m *custom{{.upperStartCamelObject}}Model) Count{{.upperStartCamelObject}}B
 }
 
 // Count{{.upperStartCamelObject}}ByWhere 根据条件统计多条记录
-func (m *custom{{.upperStartCamelObject}}Model) Sum{{.upperStartCamelObject}}ByWhere(ctx context.Context, sumField, where string, args ...any) (int64, error) {
+func (m *custom{{.upperStartCamelObject}}Model) Sum{{.upperStartCamelObject}}ByWhere(sumField, where string, args ...any) (int64, error) {
 	var resp struct {
 		S int64 `gorm:"column:s" json:"s"`
 	}
@@ -156,7 +155,7 @@ func (m *custom{{.upperStartCamelObject}}Model) Sum{{.upperStartCamelObject}}ByW
 }
 
 // Insert 新增
-func (m *custom{{.upperStartCamelObject}}Model) Insert(ctx context.Context, data *{{.upperStartCamelObject}}) (int64, error) {
+func (m *custom{{.upperStartCamelObject}}Model) Insert(data *{{.upperStartCamelObject}}) (int64, error) {
 	if data.CreateTs == 0 {
 		ts := time.Now().Unix()
 		data.CreateTs = ts
@@ -173,7 +172,7 @@ func (m *custom{{.upperStartCamelObject}}Model) Insert(ctx context.Context, data
 }
 
 // Update 更新
-func (m *custom{{.upperStartCamelObject}}Model) Update(ctx context.Context, data *{{.upperStartCamelObject}}) error {
+func (m *custom{{.upperStartCamelObject}}Model) Update(data *{{.upperStartCamelObject}}) error {
 	if data.UpdateTs == 0 {
 		data.UpdateTs = time.Now().Unix()
 	}
@@ -188,7 +187,7 @@ func (m *custom{{.upperStartCamelObject}}Model) Update(ctx context.Context, data
 }
 
 // UpdateMap 根据条件批量更新
-func (m *custom{{.upperStartCamelObject}}Model) Updates(ctx context.Context, data map[string]any, where string, args ...any) (int64, error) {
+func (m *custom{{.upperStartCamelObject}}Model) Updates(data map[string]any, where string, args ...any) (int64, error) {
 	if _, ok := data["updateTs"]; !ok {
 		data["updateTs"] = time.Now().Unix()
 	}
@@ -200,7 +199,7 @@ func (m *custom{{.upperStartCamelObject}}Model) Updates(ctx context.Context, dat
 }
 
 // DeleteByID 根据 ID 删除记录
-func (m *custom{{.upperStartCamelObject}}Model) DeleteByID(ctx context.Context, ID int64) (int64, error) {
+func (m *custom{{.upperStartCamelObject}}Model) DeleteByID(ID int64) (int64, error) {
 	ts := time.Now().Unix()
 	ret := m.c.Exec("UPDATE `" + m.table + "` SET deleteTs=?,updateTs=? WHERE id=?", ts, ts, ID)
 	m.rds.DelCache(fmt.Sprintf("model:table:%s:cache:id:%d", m.table, ID))
@@ -208,7 +207,7 @@ func (m *custom{{.upperStartCamelObject}}Model) DeleteByID(ctx context.Context, 
 }
 
 // DeleteMany 根据条件批量删除
-func (m *custom{{.upperStartCamelObject}}Model) DeleteMany(ctx context.Context, where string, args ...any) (int64, error) {
+func (m *custom{{.upperStartCamelObject}}Model) DeleteMany(where string, args ...any) (int64, error) {
 	ts := time.Now().Unix()
 	ret := m.c.Table(m.table).Where(where, args...).Updates(map[string]any{
 		"updateTs": ts,
