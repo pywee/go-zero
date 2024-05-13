@@ -6,6 +6,7 @@ import (
 	"time"
 	"strings"
 	"gorm.io/gorm"
+	rCache "github.com/pywee/mw/cache"
 	"github.com/zeromicro/go-zero/core/stores/cache"
 )
 {{else}}
@@ -31,13 +32,15 @@ type (
 	custom{{.upperStartCamelObject}}Model struct {
 		table string
 		c *gorm.DB
+		rds *rCache.RedisClientModel
 	}
 )
 
 // New{{.upperStartCamelObject}}Model returns a model for the database table.
-func New{{.upperStartCamelObject}}Model(conn *gorm.DB{{if .withCache}}, c cache.CacheConf, opts ...cache.Option{{end}}) {{.upperStartCamelObject}}Model {
+func New{{.upperStartCamelObject}}Model(conn *gorm.DB{{if .withCache}}, rds *rCache.RedisClientModel, opts ...cache.Option{{end}}) {{.upperStartCamelObject}}Model {
 	return &custom{{.upperStartCamelObject}}Model{
 		c: conn,
+		rds:   rds,
 		table: "{{.lowerStartCamelObject}}",
 	}
 }
@@ -45,6 +48,10 @@ func New{{.upperStartCamelObject}}Model(conn *gorm.DB{{if .withCache}}, c cache.
 // Get{{.upperStartCamelObject}}ByID 根据ID获取一条
 func (m *custom{{.upperStartCamelObject}}Model) Get{{.upperStartCamelObject}}ById(ctx context.Context, fields string, id int64) (*{{.upperStartCamelObject}}, error) {
 	var resp {{.upperStartCamelObject}}
+	key := fmt.Sprintf("model:table:%s:cache:id:%d", m.table, id)
+	if ok, _ := m.rds.GetCache(key, &resp); ok {
+		return &resp, nil
+	}
 	if fields == "" {
 		fields = "*"
 	}
@@ -55,6 +62,9 @@ func (m *custom{{.upperStartCamelObject}}Model) Get{{.upperStartCamelObject}}ByI
 	if resp.Id == 0 {
 		return nil, NotFoundRecord
 	}
+
+	_ = m.rds.SetCache(key, resp, time.Hour)
+
 	return &resp, nil
 }
 
@@ -168,7 +178,13 @@ func (m *custom{{.upperStartCamelObject}}Model) Update(ctx context.Context, data
 		data.UpdateTs = time.Now().Unix()
 	}
 	ret := m.c.Table(m.table).Save(data)
-	return ret.Error
+	if ret.Error != nil {
+		return ret.Error
+	}
+
+	m.rds.DelCache(fmt.Sprintf("model:table:%s:cache:id:%d", m.table, data.Id))
+	
+	return nil
 }
 
 // UpdateMap 根据条件批量更新
@@ -187,6 +203,7 @@ func (m *custom{{.upperStartCamelObject}}Model) Updates(ctx context.Context, dat
 func (m *custom{{.upperStartCamelObject}}Model) DeleteByID(ctx context.Context, ID int64) (int64, error) {
 	ts := time.Now().Unix()
 	ret := m.c.Exec("UPDATE `" + m.table + "` SET deleteTs=?,updateTs=? WHERE id=?", ts, ts, ID)
+	m.rds.DelCache(fmt.Sprintf("model:table:%s:cache:id:%d", m.table, ID))
 	return ret.RowsAffected, ret.Error
 }
 
