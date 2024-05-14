@@ -14,6 +14,7 @@ import "github.com/zeromicro/go-zero/core/stores/sqlx"
 var _ {{.upperStartCamelObject}}Model = (*custom{{.upperStartCamelObject}}Model)(nil)
 
 // 2024.04.18 修改
+// 2024.05.14 修改
 type (
 	{{.upperStartCamelObject}}Model interface {
 		Insert(*{{.upperStartCamelObject}}) (int64, error)
@@ -24,8 +25,8 @@ type (
 		Get(string, int64) (*{{.upperStartCamelObject}}, error)
 		GetByWhere(string, string, ...any) (*{{.upperStartCamelObject}}, error)
 		GetListByWhere(string, string, ...any) ([]*{{.upperStartCamelObject}}, error)
-		CountByWhere(string, ...any) (int64, error)
-		SumByWhere(string, string, ...any) (int64, error)
+		Count(string, ...any) (int64, error)
+		Sum(string, string, ...any) (int64, error)
 	}
 
 	custom{{.upperStartCamelObject}}Model struct {
@@ -51,7 +52,7 @@ func (m *custom{{.upperStartCamelObject}}Model) Get(fields string, id int64) (*{
 	if fields == "" {
 		fields = "*"
 	} else {
-		fk = fields
+		fk = strings.Replace(fields, ",", "", -1)
 	}
 	key := fmt.Sprintf("model:table:%s:cache:id:%d:fields:%s", m.table, id, fk)
 	if ok, _ := m.rds.GetCache(key, &resp); ok {
@@ -65,9 +66,7 @@ func (m *custom{{.upperStartCamelObject}}Model) Get(fields string, id int64) (*{
 	if resp.Id == 0 {
 		return nil, NotFoundRecord
 	}
-
 	_ = m.rds.SetCache(key, resp, time.Hour)
-
 	return &resp, nil
 }
 
@@ -94,7 +93,6 @@ func (m *custom{{.upperStartCamelObject}}Model) GetByWhere(fields, where string,
 	if resp.Id == 0 {
 		return nil, nil
 	}
-
 	return &resp, nil
 }
 
@@ -119,7 +117,7 @@ func (m *custom{{.upperStartCamelObject}}Model) GetListByWhere(fields, where str
 }
 
 // CountByWhere 根据条件计数
-func (m *custom{{.upperStartCamelObject}}Model) CountByWhere(where string, args ...any) (int64, error) {
+func (m *custom{{.upperStartCamelObject}}Model) Count(where string, args ...any) (int64, error) {
 	var resp struct {
 		C int64 `gorm:"column:c" json:"c"`
 	}
@@ -132,14 +130,12 @@ func (m *custom{{.upperStartCamelObject}}Model) CountByWhere(where string, args 
 	}
 
 	query := fmt.Sprintf("select count(*) c from `%s` %s", m.table, where)
-	if err := m.c.Raw(query, args...).Scan(&resp).Error; err != nil {
-		return 0, err
-	}
-	return resp.C, nil
+	err := m.c.Raw(query, args...).Scan(&resp).Error
+	return resp.C, err
 }
 
 // CountByWhere 根据条件统计多条记录
-func (m *custom{{.upperStartCamelObject}}Model) SumByWhere(sumField, where string, args ...any) (int64, error) {
+func (m *custom{{.upperStartCamelObject}}Model) Sum(sumField, where string, args ...any) (int64, error) {
 	var resp struct {
 		S int64 `gorm:"column:s" json:"s"`
 	}
@@ -152,10 +148,8 @@ func (m *custom{{.upperStartCamelObject}}Model) SumByWhere(sumField, where strin
 	}
 
 	query := fmt.Sprintf("select sum(%s) s from `%s` %s", sumField, m.table, where)
-	if err := m.c.Raw(query, args...).Scan(&resp).Error; err != nil {
-		return 0, err
-	}
-	return resp.S, nil
+	err := m.c.Raw(query, args...).Scan(&resp).Error
+	return resp.S, err
 }
 
 // Insert 新增
@@ -167,15 +161,11 @@ func (m *custom{{.upperStartCamelObject}}Model) Insert(data *{{.upperStartCamelO
 	}
 
 	ret := m.c.Table(m.table).Create(data)
-	if err := ret.Error; err != nil {
-		return 0, err
-	}
-
 	// return ret.RowsAffected, nil
-	return data.Id, nil
+	return data.Id, ret.Error
 }
 
-// Update 更新
+// Update 更新单条记录
 func (m *custom{{.upperStartCamelObject}}Model) Update(data *{{.upperStartCamelObject}}) error {
 	if data.UpdateTs == 0 {
 		data.UpdateTs = time.Now().Unix()
@@ -184,11 +174,7 @@ func (m *custom{{.upperStartCamelObject}}Model) Update(data *{{.upperStartCamelO
 	if ret.Error != nil {
 		return ret.Error
 	}
-
-
-	key := fmt.Sprintf("model:table:%s:cache:id:%d:fields:*", m.table, data.Id)
-	m.rds.DelCache(key)
-	
+	m.rds.DelCache(fmt.Sprintf("model:table:%s:cache:id:%d:fields:*", m.table, data.Id))
 	return nil
 }
 
@@ -198,18 +184,14 @@ func (m *custom{{.upperStartCamelObject}}Model) UpdateByWhere(data map[string]an
 		data["updateTs"] = time.Now().Unix()
 	}
 	ret := m.c.Table(m.table).Where(where, args...).Updates(data)
-	if err := ret.Error; err != nil {
-		return 0, err
-	}
-	return ret.RowsAffected, nil
+	return ret.RowsAffected, ret.Error
 }
 
 // Delete 根据 ID 删除记录
 func (m *custom{{.upperStartCamelObject}}Model) Delete(ID int64) (int64, error) {
 	ts := time.Now().Unix()
 	ret := m.c.Exec("UPDATE `" + m.table + "` SET deleteTs=?,updateTs=? WHERE id=?", ts, ts, ID)
-	key := fmt.Sprintf("model:table:%s:cache:id:%d:fields:*", m.table, ID)
-	m.rds.DelCache(key)
+	m.rds.DelCache(fmt.Sprintf("model:table:%s:cache:id:%d:fields:*", m.table, ID))
 	return ret.RowsAffected, ret.Error
 }
 
@@ -220,8 +202,5 @@ func (m *custom{{.upperStartCamelObject}}Model) DeleteByWhere(where string, args
 		"updateTs": ts,
 		"deleteTs": ts,
 	})
-	if err := ret.Error; err != nil {
-		return 0, err
-	}
-	return ret.RowsAffected, nil
+	return ret.RowsAffected, ret.Error
 }
