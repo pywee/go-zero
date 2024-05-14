@@ -17,15 +17,15 @@ var _ {{.upperStartCamelObject}}Model = (*custom{{.upperStartCamelObject}}Model)
 type (
 	{{.upperStartCamelObject}}Model interface {
 		Insert(*{{.upperStartCamelObject}}) (int64, error)
-		Get{{.upperStartCamelObject}}ById(string, int64) (*{{.upperStartCamelObject}}, error)
-		Get{{.upperStartCamelObject}}ByWhere(string, string, ...any) (*{{.upperStartCamelObject}}, error)
-		Get{{.upperStartCamelObject}}ByWhereList(string, string, ...any) ([]*{{.upperStartCamelObject}}, error)
+		Delete(int64) (int64, error)
+		DeleteByWhere(string, ...any) (int64, error)
 		Update(*{{.upperStartCamelObject}}) error
-		Updates(map[string]any, string, ...any) (int64, error)
-		Count{{.upperStartCamelObject}}ByWhere(string, ...any) (int64, error)
-		Sum{{.upperStartCamelObject}}ByWhere(string, string, ...any) (int64, error)
-		DeleteByID(int64) (int64, error)
-		DeleteMany(string, ...any) (int64, error)
+		UpdateByWhere(map[string]any, string, ...any) (int64, error)
+		Get(string, int64) (*{{.upperStartCamelObject}}, error)
+		GetByWhere(string, string, ...any) (*{{.upperStartCamelObject}}, error)
+		GetListByWhere(string, string, ...any) ([]*{{.upperStartCamelObject}}, error)
+		CountByWhere(string, ...any) (int64, error)
+		SumByWhere(string, string, ...any) (int64, error)
 	}
 
 	custom{{.upperStartCamelObject}}Model struct {
@@ -44,16 +44,20 @@ func New{{.upperStartCamelObject}}Model(conn *gorm.DB{{if .withCache}}, rds *rCa
 	}
 }
 
-// Get{{.upperStartCamelObject}}ByID 根据ID获取一条
-func (m *custom{{.upperStartCamelObject}}Model) Get{{.upperStartCamelObject}}ById(fields string, id int64) (*{{.upperStartCamelObject}}, error) {
+// Get 根据 ID 获取一条
+func (m *custom{{.upperStartCamelObject}}Model) Get(fields string, id int64) (*{{.upperStartCamelObject}}, error) {
 	var resp {{.upperStartCamelObject}}
-	key := fmt.Sprintf("model:table:%s:cache:id:%d", m.table, id)
+	var fk = "allFields"
+	if fields == "" {
+		fields = "*"
+	} else {
+		fk = fields
+	}
+	key := fmt.Sprintf("model:table:%s:cache:id:%d:fields:%s", m.table, id, fk)
 	if ok, _ := m.rds.GetCache(key, &resp); ok {
 		return &resp, nil
 	}
-	if fields == "" {
-		fields = "*"
-	}
+	
 	query := fmt.Sprintf("select %s from `%s` where id=? AND deleteTs=0", fields, m.table)
 	if err := m.c.Raw(query, id).Scan(&resp).Error; err != nil {
 		return nil, err
@@ -67,8 +71,8 @@ func (m *custom{{.upperStartCamelObject}}Model) Get{{.upperStartCamelObject}}ByI
 	return &resp, nil
 }
 
-// Get{{.upperStartCamelObject}}ByWhere 根据条件获取一条记录
-func (m *custom{{.upperStartCamelObject}}Model) Get{{.upperStartCamelObject}}ByWhere(fields, where string, args ...any) (*{{.upperStartCamelObject}}, error) {
+// GetByWhere 根据条件获取一条记录
+func (m *custom{{.upperStartCamelObject}}Model) GetByWhere(fields, where string, args ...any) (*{{.upperStartCamelObject}}, error) {
 	var resp {{.upperStartCamelObject}}
 	if fields == "" {
 		fields = "*"
@@ -94,8 +98,8 @@ func (m *custom{{.upperStartCamelObject}}Model) Get{{.upperStartCamelObject}}ByW
 	return &resp, nil
 }
 
-// Get{{.upperStartCamelObject}}ByWhereList 根据条件获取多条记录
-func (m *custom{{.upperStartCamelObject}}Model) Get{{.upperStartCamelObject}}ByWhereList(fields, where string, args ...any) ([]*{{.upperStartCamelObject}}, error) {
+// GetListByWhere 根据条件获取多条记录
+func (m *custom{{.upperStartCamelObject}}Model) GetListByWhere(fields, where string, args ...any) ([]*{{.upperStartCamelObject}}, error) {
 	var resp []*{{.upperStartCamelObject}}
 	if fields == "" {
 		fields = "*"
@@ -114,8 +118,8 @@ func (m *custom{{.upperStartCamelObject}}Model) Get{{.upperStartCamelObject}}ByW
 	return resp, nil
 }
 
-// Count{{.upperStartCamelObject}}ByWhere 根据条件计数
-func (m *custom{{.upperStartCamelObject}}Model) Count{{.upperStartCamelObject}}ByWhere(where string, args ...any) (int64, error) {
+// CountByWhere 根据条件计数
+func (m *custom{{.upperStartCamelObject}}Model) CountByWhere(where string, args ...any) (int64, error) {
 	var resp struct {
 		C int64 `gorm:"column:c" json:"c"`
 	}
@@ -134,8 +138,8 @@ func (m *custom{{.upperStartCamelObject}}Model) Count{{.upperStartCamelObject}}B
 	return resp.C, nil
 }
 
-// Count{{.upperStartCamelObject}}ByWhere 根据条件统计多条记录
-func (m *custom{{.upperStartCamelObject}}Model) Sum{{.upperStartCamelObject}}ByWhere(sumField, where string, args ...any) (int64, error) {
+// CountByWhere 根据条件统计多条记录
+func (m *custom{{.upperStartCamelObject}}Model) SumByWhere(sumField, where string, args ...any) (int64, error) {
 	var resp struct {
 		S int64 `gorm:"column:s" json:"s"`
 	}
@@ -181,13 +185,15 @@ func (m *custom{{.upperStartCamelObject}}Model) Update(data *{{.upperStartCamelO
 		return ret.Error
 	}
 
-	m.rds.DelCache(fmt.Sprintf("model:table:%s:cache:id:%d", m.table, data.Id))
+
+	key := fmt.Sprintf("model:table:%s:cache:id:%d:fields:*", m.table, data.Id)
+	m.rds.DelCache(key)
 	
 	return nil
 }
 
-// UpdateMap 根据条件批量更新
-func (m *custom{{.upperStartCamelObject}}Model) Updates(data map[string]any, where string, args ...any) (int64, error) {
+// UpdateByWhere 根据条件批量更新
+func (m *custom{{.upperStartCamelObject}}Model) UpdateByWhere(data map[string]any, where string, args ...any) (int64, error) {
 	if _, ok := data["updateTs"]; !ok {
 		data["updateTs"] = time.Now().Unix()
 	}
@@ -198,16 +204,17 @@ func (m *custom{{.upperStartCamelObject}}Model) Updates(data map[string]any, whe
 	return ret.RowsAffected, nil
 }
 
-// DeleteByID 根据 ID 删除记录
-func (m *custom{{.upperStartCamelObject}}Model) DeleteByID(ID int64) (int64, error) {
+// Delete 根据 ID 删除记录
+func (m *custom{{.upperStartCamelObject}}Model) Delete(ID int64) (int64, error) {
 	ts := time.Now().Unix()
 	ret := m.c.Exec("UPDATE `" + m.table + "` SET deleteTs=?,updateTs=? WHERE id=?", ts, ts, ID)
-	m.rds.DelCache(fmt.Sprintf("model:table:%s:cache:id:%d", m.table, ID))
+	key := fmt.Sprintf("model:table:%s:cache:id:%d:fields:*", m.table, ID)
+	m.rds.DelCache(key)
 	return ret.RowsAffected, ret.Error
 }
 
-// DeleteMany 根据条件批量删除
-func (m *custom{{.upperStartCamelObject}}Model) DeleteMany(where string, args ...any) (int64, error) {
+// DeleteByWhere 根据条件批量删除
+func (m *custom{{.upperStartCamelObject}}Model) DeleteByWhere(where string, args ...any) (int64, error) {
 	ts := time.Now().Unix()
 	ret := m.c.Table(m.table).Where(where, args...).Updates(map[string]any{
 		"updateTs": ts,
