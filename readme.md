@@ -3,8 +3,8 @@
 基于源代码修改，新增了自动生成 API 增删改查逻辑，修改了 mongoDB 的代码逻辑；
 替换了原有的数据库驱动，改为 GORM；
 
-安装完成 goctl 之后，一定要先将模板进行落盘，执行 goctl template init
-之后显示目录，如 mac 将其保存在 /Users/mac/.goctl/1.5.4
+**安装完成 goctl 之后，一定要先将模板进行落盘，执行 goctl template init**
+这样模板才会写入到硬盘中供自定义使用，mac 将其保存在 /Users/mac/.goctl/1.5.4、windows将其保存在 ~/.goctl
 
 1.使代码中可基于 SQL 语句的方式生成 bson 结构的 filter, options，减少代码编写，使条件查询更清晰
 2.新增了自动生成 API 增删改查逻辑
