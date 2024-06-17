@@ -3,6 +3,7 @@ package gogen
 import (
 	_ "embed"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/zeromicro/go-zero/tools/goctl/api/spec"
@@ -40,6 +41,13 @@ func genServiceContext(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpe
 		configImport += fmt.Sprintf("\n\t\"%s/rest\"", vars.ProjectOpenSourceURL)
 	}
 
+	workName, _ := os.Getwd()
+	if idx := strings.LastIndex(workName, "/"); idx != -1 {
+		workName = workName[idx+1:]
+	} else {
+		workName = ""
+	}
+
 	return genFile(fileGenConfig{
 		dir:             dir,
 		subdir:          contextDir,
@@ -53,6 +61,7 @@ func genServiceContext(dir, rootPkg string, cfg *config.Config, api *spec.ApiSpe
 			"config":               "config.Config",
 			"middleware":           middlewareStr,
 			"middlewareAssignment": middlewareAssignment,
+			"workName":             workName,
 		},
 	})
 }

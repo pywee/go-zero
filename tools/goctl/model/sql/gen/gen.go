@@ -443,9 +443,6 @@ func (g *defaultGenerator) executeModel(table Table, code *code) (*bytes.Buffer,
 	}
 	output, err := t.Execute(configs)
 
-	x, _ := os.Getwd()
-	fmt.Println(x)
-
 	if err != nil {
 		return nil, err
 	}
