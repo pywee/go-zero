@@ -241,12 +241,7 @@ func mockStudent(mockFn func(mock sqlmock.Sqlmock), fn func(m StudentModel, r *r
 	mock.ExpectCommit()
 
 	conn := mocksql.NewMockConn(db)
-	r, clean, err := redistest.CreateRedis()
-	if err != nil {
-		return err
-	}
-
-	defer clean()
+	r := redistest.CreateRedis(&testing.T{})
 
 	m := NewStudentModel(conn, cache.CacheConf{
 		{
