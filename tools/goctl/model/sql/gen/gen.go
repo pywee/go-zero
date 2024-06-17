@@ -390,6 +390,13 @@ func (g *defaultGenerator) genModelCustom(in parser.Table, withCache bool) (stri
 		return "", err
 	}
 
+	workName, _ := os.Getwd()
+	if idx := strings.LastIndex(workName, "/"); idx != -1 {
+		workName = workName[idx+1:]
+	} else {
+		workName = ""
+	}
+
 	t := util.With("model-custom").
 		Parse(text).
 		GoFmt(true)
@@ -399,6 +406,7 @@ func (g *defaultGenerator) genModelCustom(in parser.Table, withCache bool) (stri
 		"tableNameStr":          in.Name.ToCamel(),
 		"tableNameLower":        FirstLower(in.Name.ToCamel()),
 		"upperStartCamelObject": in.Name.ToCamel(),
+		"serviceName":           workName,
 		"lowerStartCamelObject": stringx.From(in.Name.ToCamel()).Untitle(),
 	})
 	if err != nil {
@@ -416,7 +424,8 @@ func (g *defaultGenerator) executeModel(table Table, code *code) (*bytes.Buffer,
 	t := util.With("model").
 		Parse(text).
 		GoFmt(true)
-	output, err := t.Execute(map[string]any{
+
+	configs := map[string]any{
 		"types2":       code.types2Code,
 		"pkg":          g.pkg,
 		"imports":      code.importsCode,
@@ -431,7 +440,12 @@ func (g *defaultGenerator) executeModel(table Table, code *code) (*bytes.Buffer,
 		"tableName":    code.tableName,
 		"tableNameStr": table.Name.ToCamel(),
 		"data":         table,
-	})
+	}
+	output, err := t.Execute(configs)
+
+	x, _ := os.Getwd()
+	fmt.Println(x)
+
 	if err != nil {
 		return nil, err
 	}

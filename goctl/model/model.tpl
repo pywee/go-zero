@@ -14,7 +14,7 @@ import "github.com/zeromicro/go-zero/core/stores/sqlx"
 var _ {{.upperStartCamelObject}}Model = (*custom{{.upperStartCamelObject}}Model)(nil)
 
 // 2024.04.18 修改
-// 2024.05.14 修改
+// 2024.05.14 修改 
 type (
 	{{.upperStartCamelObject}}Model interface {
 		Insert(*{{.upperStartCamelObject}}) (int64, error)
