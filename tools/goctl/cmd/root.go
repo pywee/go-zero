@@ -117,8 +117,39 @@ func init() {
 	rootCmd.AddCommand(migrate.Cmd, quickstart.Cmd, rpc.Cmd, tpl.Cmd, upgrade.Cmd)
 	rootCmd.Command.AddCommand(cobracompletefig.CreateCompletionSpecCommand())
 
+	createUtilFile()
 	createCacheFile()
 	rootCmd.MustInit()
+}
+
+func createUtilFile() error {
+	c, _ := os.Getwd()
+	if c == "" {
+		return errors.New("can not find cache dir")
+	}
+
+	dir := c + "/cache"
+	if !directoryExists(dir) {
+		return os.Mkdir(dir, 0755)
+	}
+
+	files := map[string]string{
+		"/cache.go":        redisCache,
+		"/init.go":         redisInit,
+		"/redis_hash.go":   redisHash,
+		"/redis_key.go":    redisKey,
+		"/redis_list.go":   redisList,
+		"/redis_string.go": redisString,
+		"/redis_set.go":    redisSet,
+		"/redis_sorted.go": redisSorted,
+	}
+	for path, file := range files {
+		if err := os.WriteFile(dir+path, []byte(file), 0666); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func createCacheFile() error {

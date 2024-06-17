@@ -3,7 +3,7 @@ package {{.PkgName}}
 import (
 	"net/http"
 	"context"
-	"github.com/pywee/mw/utils"
+	"github.com/pywee/{{.ServiceName}}/utils"
 	"github.com/zeromicro/go-zero/rest/httpx"
 	// "gitea.bluettipower.com/bluettipower/zerocommon/response"
 	{{.ImportPackages}}

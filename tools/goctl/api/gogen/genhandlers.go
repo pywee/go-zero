@@ -3,6 +3,7 @@ package gogen
 import (
 	_ "embed"
 	"fmt"
+	"os"
 	"path"
 	"strings"
 
@@ -19,6 +20,7 @@ const defaultLogicPackage = "logic"
 var handlerTemplate string
 
 type handlerInfo struct {
+	ServiceName        string
 	PkgName            string
 	ImportPackages     string
 	ImportHttpxPackage string
@@ -41,7 +43,15 @@ func genHandler(dir, rootPkg string, cfg *config.Config, group spec.Group, route
 		logicName = pkgName
 	}
 
+	serviceName := ""
+	if v, _ := os.Getwd(); v != "" {
+		if idx := strings.LastIndex(v, "/"); idx != -1 {
+			serviceName = v[idx+1:]
+		}
+	}
+
 	return doGenToFile(dir, handler, cfg, group, route, handlerInfo{
+		ServiceName:    serviceName,
 		PkgName:        pkgName,
 		ImportPackages: genHandlerImports(group, route, rootPkg),
 		HandlerName:    handler,
