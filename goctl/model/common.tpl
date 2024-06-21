@@ -3,6 +3,7 @@ package model
 import (
 	"reflect"
 	"strconv"
+	"strings"
 
 	rCache "github.com/pywee/fangzhoucms/cache"
 	"github.com/zeromicro/go-zero/core/stores/cache"
@@ -60,6 +61,22 @@ func (b *customBaseModel) QueryList(sql string, args ...any) ([]map[string]strin
 
 	rows.Close()
 	return list, nil
+}
+
+// toSQLWhere 转换为内部标准 WHERE 条件语句
+// 如果 limit 为空则表示不限制
+func toSQLWhere(where, limit string) string {
+	if !strings.Contains(where, "deleteTs") {
+		where = "where deleteTs=0 AND " + where
+		where = strings.TrimSuffix(where, "AND ")
+	} else if where != "" {
+		where = "where " + where
+	}
+	if limit != "" && !strings.Contains(strings.ToLower(where), "limit ") {
+		where += " LIMIT " + limit
+	}
+
+	return where
 }
 
 func typeToString(v any) string {

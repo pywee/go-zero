@@ -76,17 +76,8 @@ func (m *custom{{.upperStartCamelObject}}Model) GetByWhere(fields, where string,
 	if fields == "" {
 		fields = "*"
 	}
-	if !strings.Contains(where, "deleteTs") {
-		where = "where deleteTs=0 AND " + where
-		where = strings.TrimSuffix(where, "AND ")
-	} else if where != "" {
-		where = "where " + where
-	}
-	if !strings.Contains(strings.ToLower(where), "limit ") {
-		where += " LIMIT 1"
-	}
 
-	query := fmt.Sprintf("select %s from `%s` %s", fields, m.table, where)
+	query := fmt.Sprintf("select %s from `%s` %s", fields, m.table, toSQLWhere(where, "1"))
 	if err := m.c.Raw(query, args...).Scan(&resp).Error; err != nil {
 		return nil, err
 	}
@@ -102,14 +93,8 @@ func (m *custom{{.upperStartCamelObject}}Model) GetListByWhere(fields, where str
 	if fields == "" {
 		fields = "*"
 	}
-	if !strings.Contains(where, "deleteTs") {
-		where = "where deleteTs=0 AND " + where
-		where = strings.TrimSuffix(where, "AND ")
-	} else if where != "" {
-		where = "where " + where
-	}
 
-	query := fmt.Sprintf("select %s from `%s` %s", fields, m.table, where)
+	query := fmt.Sprintf("select %s from `%s` %s", fields, m.table, toSQLWhere(where, ""))
 	if err := m.c.Raw(query, args...).Scan(&resp).Error; err != nil {
 		return nil, err
 	}
@@ -122,14 +107,7 @@ func (m *custom{{.upperStartCamelObject}}Model) Count(where string, args ...any)
 		C int64 `gorm:"column:c" json:"c"`
 	}
 
-	if !strings.Contains(where, "deleteTs") {
-		where = "where deleteTs=0 AND " + where
-		where = strings.TrimSuffix(where, "AND ")
-	} else if where != "" {
-		where = "where " + where
-	}
-
-	query := fmt.Sprintf("select count(*) c from `%s` %s", m.table, where)
+	query := fmt.Sprintf("select count(*) c from `%s` %s", m.table, toSQLWhere(where, ""))
 	err := m.c.Raw(query, args...).Scan(&resp).Error
 	return resp.C, err
 }
@@ -140,14 +118,7 @@ func (m *custom{{.upperStartCamelObject}}Model) Sum(sumField, where string, args
 		S int64 `gorm:"column:s" json:"s"`
 	}
 
-	if !strings.Contains(where, "deleteTs") {
-		where = "where deleteTs=0 AND " + where
-		where = strings.TrimSuffix(where, "AND ")
-	} else if where != "" {
-		where = "where " + where
-	}
-
-	query := fmt.Sprintf("select sum(%s) s from `%s` %s", sumField, m.table, where)
+	query := fmt.Sprintf("select sum(%s) s from `%s` %s", sumField, m.table, toSQLWhere(where, ""))
 	err := m.c.Raw(query, args...).Scan(&resp).Error
 	return resp.S, err
 }

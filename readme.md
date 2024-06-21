@@ -1,6 +1,7 @@
 # go-zero
 
 基于源代码修改，新增了自动生成 API 增删改查逻辑，修改了 mongoDB 的代码逻辑；
+增加了丰富的 MYSQL 查询方法；
 替换了原有的数据库驱动，改为 GORM；
 
 **安装完成 goctl 之后，一定要先将模板进行落盘，执行 goctl template init**
@@ -19,6 +20,8 @@ mkdir ~/.goctl
 cd /workspace
 git clone git@github.com:pywee/go-zero.git
 cd go-zero
+make windows
+goctl template init**
 ln -s /workspace/go-zero/goctl ~/.goctl/1.5.4 # 此处的源目录必须用绝对路径 /workspace/go-zero/goctl
 ```
 
