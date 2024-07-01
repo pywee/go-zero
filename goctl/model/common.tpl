@@ -12,7 +12,7 @@ import (
 
 type (
 	BaseModel interface {
-		Query(map[string]any, string, ...any) error
+		Query(map[string]string, string, ...any) error
 		QueryList(string, ...any) ([]map[string]string, error)
 	}
 	customBaseModel struct {
@@ -29,9 +29,35 @@ func NewBaseModel(conn *gorm.DB, rds *rCache.RedisClientModel, opts ...cache.Opt
 }
 
 // Query 原生查询语句
-func (b *customBaseModel) Query(ret map[string]any, sql string, args ...any) error {
-	m := b.c.Raw(sql, args...).First(&ret)
-	return m.Error
+func (b *customBaseModel) Query(ret map[string]string, sql string, args ...any) error {
+	db, err := b.c.DB()
+	if err != nil {
+		return err
+	}
+
+	rows, err := db.Query(sql, args...)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	columns, _ := rows.Columns()
+	cLen := len(columns)
+	for rows.Next() {
+		values := make([]any, cLen)
+		valuePtrs := make([]any, cLen)
+		for i := range values {
+			valuePtrs[i] = &values[i]
+		}
+		if err := rows.Scan(valuePtrs...); err != nil {
+			return err
+		}
+		for i := 0; i < cLen; i++ {
+			ret[columns[i]] = typeToString(values[i])
+		}
+	}
+
+	return nil
 }
 
 // Query 原生查询语句
