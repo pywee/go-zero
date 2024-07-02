@@ -1,11 +1,10 @@
-package model
+package mysqlModel
 
 import (
 	"reflect"
 	"strconv"
 	"strings"
 
-	rCache "github.com/pywee/fangzhoucms/cache"
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"gorm.io/gorm"
 )
@@ -17,14 +16,12 @@ type (
 	}
 	customBaseModel struct {
 		c   *gorm.DB
-		rds *rCache.RedisClientModel
 	}
 )
 
-func NewBaseModel(conn *gorm.DB, rds *rCache.RedisClientModel, opts ...cache.Option) BaseModel {
+func NewBaseModel(conn *gorm.DB, opts ...cache.Option) BaseModel {
 	return &customBaseModel{
 		c:   conn,
-		rds: rds,
 	}
 }
 
