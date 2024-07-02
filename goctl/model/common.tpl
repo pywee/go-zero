@@ -126,6 +126,33 @@ func typeToString(v any) string {
 	return ""
 }
 
+// case2CamelS 下划线转驼峰
+func case2CamelS(name string) string {
+	name = strings.Replace(name, "_", " ", -1)
+	name = strings.Title(name)
+	return strings.Replace(name, " ", "", -1)
+}
+
+// Name2Case 驼峰转下划线
+func Name2Case(str string) string {
+	m := make([]rune, 0, 10)
+	for k, v := range str {
+		if k == 0 && IsWordEn(v) {
+			v += 32
+		} else if IsWordEn(v) {
+			m = append(m, '_')
+			v += 32
+		}
+		m = append(m, v)
+	}
+	return string(m)
+}
+
+func IsWordEn(s rune) bool {
+	return s >= 65 && s <= 90
+}
+
+
 // byte2Str []byte to string
 //func byte2Str(b []byte) string {
 //return *(*string)(unsafe.Pointer(&b))
