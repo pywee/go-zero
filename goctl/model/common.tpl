@@ -4,7 +4,10 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"encoding/json"
 
+	"github.com/pywee/fangzhoucms/utils"
+	"github.com/zeromicro/go-zero/core/logx"
 	rCache "github.com/pywee/fangzhoucms/cache"
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"gorm.io/gorm"
@@ -35,6 +38,17 @@ func (b *customBaseModel) Query(ret map[string]string, sql string, args ...any) 
 		return err
 	}
 
+	ckey := ""
+	rdsCli := b.rds
+	if rdsCli != nil {
+		ckey = utils.Md5(sql)
+		if r, _ := rdsCli.Get(ckey); r != "" {
+			if err = json.Unmarshal([]byte(r), &ret); err == nil {
+				return nil
+			}
+		}
+	}
+
 	rows, err := db.Query(sql, args...)
 	if err != nil {
 		return err
@@ -54,6 +68,13 @@ func (b *customBaseModel) Query(ret map[string]string, sql string, args ...any) 
 		}
 		for i := 0; i < cLen; i++ {
 			ret[columns[i]] = typeToString(values[i])
+		}
+	}
+
+	if rdsCli != nil {
+		s, _ := json.Marshal(ret)
+		if err = rdsCli.Set(ckey, s, rdsCli.TimeOut); err != nil {
+			logx.Errorf("fail to set cache key: %s, sql: %s", ckey, sql)
 		}
 	}
 
