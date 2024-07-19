@@ -2,7 +2,6 @@ package {{.PkgName}}
 
 import (
 	"net/http"
-	"context"
 	"github.com/zeromicro/go-zero/rest/httpx"
 	"gitea.bluettipower.com/bluettipower/zerocommon/response"
 	{{.ImportPackages}}
