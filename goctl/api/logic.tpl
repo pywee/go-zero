@@ -12,7 +12,7 @@ import (
 
 type {{.logic}} struct {
 	logx.Logger
-	Uid int64
+	Uid string
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 }
