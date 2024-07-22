@@ -12,16 +12,18 @@ import (
 
 type {{.logic}} struct {
 	logx.Logger
-	Uid int64
+	uid int64
+	osType int8
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 }
 
-func New{{.logic}}(ctx context.Context, svcCtx *svc.ServiceContext) *{{.logic}} {
+func New{{.logic}}(ctx context.Context, svcCtx *svc.ServiceContext, osType int8) *{{.logic}} {
 	return &{{.logic}}{
 		ctx:    ctx,
 		svcCtx: svcCtx,
-		Uid: svcCtx.UID(ctx),
+		uid: svcCtx.UID(ctx),
+		osType: osType,
 		// Logger: logx.WithContext(ctx),
 	}
 }

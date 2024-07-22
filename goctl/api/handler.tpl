@@ -3,6 +3,7 @@ package {{.PkgName}}
 import (
 	"net/http"
 	"context"
+	"strings"
 	"github.com/pywee/{{.ServiceName}}/utils"
 	"github.com/zeromicro/go-zero/rest/httpx"
 	// "gitea.bluettipower.com/bluettipower/zerocommon/response"
@@ -21,7 +22,21 @@ func {{.HandlerName}}(svcCtx *svc.ServiceContext) http.HandlerFunc {
 		if token := r.Header.Get("f"); token != "" {
 			r = r.WithContext(context.WithValue(r.Context(), utils.ContextType("token"), token))
 		}
-		l := {{.LogicName}}.New{{.LogicType}}(r.Context(), svcCtx)
+
+		var os int8
+		userAgent := r.Header.Get("User-Agent")
+		if idx := strings.Index(userAgent, ")"); idx != -1 {
+			userAgent = strings.ToLower(userAgent[:idx])
+			if strings.Contains(userAgent, "android") {
+				os = types.OsTypeAndroid
+			} else if strings.Contains(userAgent, "ios") {
+				os = types.OsTypeIOS
+			} else if strings.Contains(userAgent, "pad") {
+				os = types.OsTypePad
+			}
+		}
+
+		l := {{.LogicName}}.New{{.LogicType}}(r.Context(), svcCtx, os)
 		{{if .HasResp}}resp, {{end}}err := l.{{.Call}}({{if .HasRequest}}&req{{end}})
 		utils.JSON(w, resp, err)
 		{{if .HasResp}}// response.Response(w, resp, err){{else}}// response.Response(w, nil, err){{end}}
