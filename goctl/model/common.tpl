@@ -1,14 +1,15 @@
 package model
 
 import (
+	"encoding/json"
+	"errors"
 	"reflect"
 	"strconv"
 	"strings"
-	"encoding/json"
 
+	rCache "github.com/pywee/fangzhoucms/cache"
 	"github.com/pywee/fangzhoucms/utils"
 	"github.com/zeromicro/go-zero/core/logx"
-	rCache "github.com/pywee/fangzhoucms/cache"
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"gorm.io/gorm"
 )
@@ -33,6 +34,10 @@ func NewBaseModel(conn *gorm.DB, rds *rCache.RedisClientModel, opts ...cache.Opt
 
 // Query 原生查询语句
 func (b *customBaseModel) Query(ret map[string]string, sql string, args ...any) error {
+	if ret == nil {
+		return errors.New("can not use a map of nil")
+	}
+
 	db, err := b.c.DB()
 	if err != nil {
 		return err
