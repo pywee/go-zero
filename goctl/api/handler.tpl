@@ -23,7 +23,7 @@ func {{.HandlerName}}(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			r = r.WithContext(context.WithValue(r.Context(), utils.ContextType("token"), token))
 		}
 
-		var os int8
+		var os string
 		userAgent := r.Header.Get("User-Agent")
 		if idx := strings.Index(userAgent, ")"); idx != -1 {
 			userAgent = strings.ToLower(userAgent[:idx])
