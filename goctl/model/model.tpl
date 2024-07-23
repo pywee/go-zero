@@ -46,11 +46,12 @@ func New{{.upperStartCamelObject}}Model(conn *gorm.DB{{if .withCache}}, opts ...
 func (m *custom{{.upperStartCamelObject}}Model) Get(fields string, id int64) (*{{.upperStartCamelObject}}, error) {
 	var resp {{.upperStartCamelObject}}
 	//var fk = "allFields"
-	//if fields == "" {
-		//fields = "*"
-	//} else {
-		//fk = strings.Replace(fields, ",", "", -1)
-	//}
+	if fields == "" {
+		fields = "*"
+	}
+	// else {
+		// fk = strings.Replace(fields, ",", "", -1)
+	// }
 	// key := fmt.Sprintf("model:table:%s:cache:id:%d:fields:%s", m.table, id, fk)
 	// if ok, _ := m.rds.GetCache(key, &resp); ok {
 		// return &resp, nil
