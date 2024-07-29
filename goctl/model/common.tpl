@@ -18,6 +18,7 @@ type (
 	BaseModel interface {
 		Query(map[string]string, string, ...any) error
 		QueryList(string, ...any) ([]map[string]string, error)
+		QueryFieldList(string, ...any) ([]string, error)
 	}
 	customBaseModel struct {
 		c   *gorm.DB
@@ -115,6 +116,39 @@ func (b *customBaseModel) QueryList(ql string, args ...any) ([]map[string]string
 	rows.Close()
 	return list, nil
 }
+
+QueryFieldList 原生查询语句
+// 对于查询单个字段的列表时有用
+func (b *customBaseModel) QueryFieldList(ql string, args ...any) ([]string, error) {
+	rows, err := b.c.Raw(ql, args...).Rows()
+	if err != nil {
+		return nil, err
+	}
+
+	list := make([]string, 0, 5)
+	columns, _ := rows.Columns()
+	columnLength := len(columns)
+	cache := make([]any, columnLength)
+	for index := range cache {
+		var a any
+		cache[index] = &a
+	}
+
+	for rows.Next() {
+		rows.Scan(cache...)
+		// item := make(map[string]string)
+		for _, data := range cache {
+			// fmt.Println(columns[i], reflect.TypeOf(v).String())
+			// item[columns[i]] = typeToString(*data.(*any))
+			list = append(list, typeToString(*data.(*any)))
+		}
+		// list = append(list, item)
+	}
+
+	rows.Close()
+	return list, nil
+}
+
 
 // toSQLWhere 转换为内部标准 WHERE 条件语句
 // 如果 limit 为空则表示不限制
