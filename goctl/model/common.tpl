@@ -1,7 +1,6 @@
 package model
 
 import (
-	"database/sql"
 	"encoding/json"
 	"errors"
 	"reflect"
@@ -55,12 +54,7 @@ func (b *customBaseModel) Query(ret map[string]string, ql string, args ...any) e
 		}
 	}
 
-	var rows *sql.Rows
-	if len(args) > 0 {
-		rows, err = db.Query(ql, args...)
-	} else {
-		rows, err = db.Query(ql, args...)
-	}
+	rows, err := db.Query(ql, args...)
 	if err != nil {
 		return err
 	}
@@ -94,16 +88,7 @@ func (b *customBaseModel) Query(ret map[string]string, ql string, args ...any) e
 
 // Query 原生查询语句
 func (b *customBaseModel) QueryList(ql string, args ...any) ([]map[string]string, error) {
-	var (
-		err  error
-		rows *sql.Rows
-	)
-
-	if len(args) > 0 {
-		rows, err = b.c.Raw(ql, args...).Rows()
-	} else {
-		rows, err = b.c.Raw(ql, args...).Rows()
-	}
+	rows, err := b.c.Raw(ql, args...).Rows()
 	if err != nil {
 		return nil, err
 	}
