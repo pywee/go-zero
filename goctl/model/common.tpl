@@ -1,6 +1,7 @@
 package model
 
 import (
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"reflect"
@@ -33,7 +34,7 @@ func NewBaseModel(conn *gorm.DB, rds *rCache.RedisClientModel, opts ...cache.Opt
 }
 
 // Query 原生查询语句
-func (b *customBaseModel) Query(ret map[string]string, sql string, args ...any) error {
+func (b *customBaseModel) Query(ret map[string]string, ql string, args ...any) error {
 	if ret == nil {
 		return errors.New("can not use a map of nil")
 	}
@@ -46,7 +47,7 @@ func (b *customBaseModel) Query(ret map[string]string, sql string, args ...any) 
 	ckey := ""
 	rdsCli := b.rds
 	if rdsCli != nil {
-		ckey = utils.Md5(sql)
+		ckey = utils.Md5(ql)
 		if r, _ := rdsCli.Get(ckey); r != "" {
 			if err = json.Unmarshal([]byte(r), &ret); err == nil {
 				return nil
@@ -54,7 +55,12 @@ func (b *customBaseModel) Query(ret map[string]string, sql string, args ...any) 
 		}
 	}
 
-	rows, err := db.Query(sql, args...)
+	var rows *sql.Rows
+	if len(args) > 0 {
+		rows, err = db.Query(ql, args...)
+	} else {
+		rows, err = db.Query(ql, args...)
+	}
 	if err != nil {
 		return err
 	}
@@ -79,7 +85,7 @@ func (b *customBaseModel) Query(ret map[string]string, sql string, args ...any) 
 	if rdsCli != nil {
 		s, _ := json.Marshal(ret)
 		if err = rdsCli.Set(ckey, s, rdsCli.TimeOut); err != nil {
-			logx.Errorf("fail to set cache key: %s, sql: %s", ckey, sql)
+			logx.Errorf("fail to set cache key: %s, sql: %s", ckey, ql)
 		}
 	}
 
@@ -87,8 +93,17 @@ func (b *customBaseModel) Query(ret map[string]string, sql string, args ...any) 
 }
 
 // Query 原生查询语句
-func (b *customBaseModel) QueryList(sql string, args ...any) ([]map[string]string, error) {
-	rows, err := b.c.Raw(sql, args...).Rows()
+func (b *customBaseModel) QueryList(ql string, args ...any) ([]map[string]string, error) {
+	var (
+		err  error
+		rows *sql.Rows
+	)
+
+	if len(args) > 0 {
+		rows, err = b.c.Raw(ql, args...).Rows()
+	} else {
+		rows, err = b.c.Raw(ql, args...).Rows()
+	}
 	if err != nil {
 		return nil, err
 	}
