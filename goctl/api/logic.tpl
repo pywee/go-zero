@@ -1,6 +1,7 @@
 package {{.pkgName}}
 
 import (
+	"gitea.bluettipower.com/bluettipower/user-service/utils"
 	{{.imports}}{{if eq .function "Update"}}
 	"github.com/jinzhu/copier"{{else if eq .function "Get"}}
 	"github.com/jinzhu/copier"{{else if eq .function "Create"}}
@@ -21,7 +22,7 @@ func New{{.logic}}(ctx context.Context, svcCtx *svc.ServiceContext) *{{.logic}} 
 	return &{{.logic}}{
 		ctx:    ctx,
 		svcCtx: svcCtx,
-		Uid: svcCtx.UID(ctx),
+		Uid: utils.UID(ctx),
 		// Logger: logx.WithContext(ctx),
 	}
 }
