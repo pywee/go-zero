@@ -57,9 +57,9 @@ func (b *customBaseModel) Query(ret map[string]string, sql string, args ...any) 
 	return nil
 }
 
-// Query 原生查询语句
-func (b *customBaseModel) QueryList(sql string, args ...any) ([]map[string]string, error) {
-	rows, err := b.c.Raw(sql, args...).Rows()
+// QueryList 原生查询语句
+func (b *customBaseModel) QueryList(ql string, args ...any) ([]map[string]string, error) {
+	rows, err := b.c.Raw(ql, args...).Rows()
 	if err != nil {
 		return nil, err
 	}
