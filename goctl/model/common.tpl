@@ -90,8 +90,14 @@ func (b *customBaseModel) QueryList(ql string, args ...any) ([]map[string]string
 // toSQLWhere 转换为内部标准 WHERE 条件语句
 // 如果 limit 为空则表示不限制
 func toSQLWhere(where, limit string) string {
-	if !strings.Contains(where, "deleteTs") {
-		where = "where deleteTs=0 AND " + where
+	and := ""
+	sw := strings.ToLower(strings.TrimSpace(where))
+	if sw != "" && !strings.HasPrefix(sw, "order") && !strings.HasPrefix(sw, "limit") {
+		and = " AND "
+	}
+
+	if !strings.Contains(where, "delete_ts") {
+		where = "where delete_ts=0 " + and + where
 		where = strings.TrimSuffix(where, "AND ")
 	} else if where != "" {
 		where = "where " + where
