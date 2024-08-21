@@ -117,7 +117,7 @@ func (b *customBaseModel) QueryList(ql string, args ...any) ([]map[string]string
 	return list, nil
 }
 
-QueryFieldList 原生查询语句
+// QueryFieldList 原生查询语句
 // 对于查询单个字段的列表时有用
 func (b *customBaseModel) QueryFieldList(ql string, args ...any) ([]string, error) {
 	rows, err := b.c.Raw(ql, args...).Rows()
