@@ -50,6 +50,7 @@ func (b *customBaseModel) Query(ret map[string]string, ql string, args ...any) e
 		ckey = utils.Md5(ql)
 		if r, _ := rdsCli.Get(ckey); r != "" {
 			if err = json.Unmarshal([]byte(r), &ret); err == nil {
+				println("found cache for sql:", ql)
 				return nil
 			}
 		}
