@@ -158,8 +158,8 @@ func toSQLWhere(where, limit string) string {
 		and = " AND "
 	}
 
-	if !strings.Contains(where, "delete_ts") {
-		where = "where delete_ts=0 " + and + where
+	if !strings.Contains(where, "deleteTs") {
+		where = "where deleteTs=0 " + and + where
 		where = strings.TrimSuffix(where, "AND ")
 	} else if where != "" {
 		where = "where " + where
