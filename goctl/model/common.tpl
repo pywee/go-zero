@@ -110,6 +110,10 @@ func (b *customBaseModel) QueryListCache(key, ql string, args ...any) ([]map[str
 	if ret, err = b.QueryList(ql, args...); err != nil {
 		return nil, err
 	}
+
+	if rdsCli != nil {
+		rdsCli.SetCache(ckey, ret, rdsCli.TimeOut)
+	}
 	return ret, nil
 }
 
