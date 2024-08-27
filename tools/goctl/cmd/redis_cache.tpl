@@ -45,7 +45,7 @@ func (c *RedisClientModel) SetCache(key string, value interface{}, expireTs time
 		return false
 	}
 
-	log.Printf("set cache finished of key %s", key)
+	log.Printf("-> set cache finished of key %s", key)
 	return true
 }
 
