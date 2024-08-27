@@ -1,22 +1,21 @@
 package model
 
 import (
-	"encoding/json"
-	"errors"
 	"reflect"
 	"strconv"
 	"strings"
 
 	rCache "github.com/pywee/fangzhoucms/cache"
 	"github.com/pywee/fangzhoucms/utils"
-	"github.com/zeromicro/go-zero/core/logx"
 	"github.com/zeromicro/go-zero/core/stores/cache"
 	"gorm.io/gorm"
 )
 
 type (
 	BaseModel interface {
-		Query(map[string]string, string, ...any) error
+		QueryCache(string, string, ...any) (map[string]string, error)
+		QueryListCache(string, string, ...any) ([]map[string]string, error)
+		Query(string, ...any) (map[string]string, error)
 		QueryList(string, ...any) ([]map[string]string, error)
 		QueryFieldList(string, ...any) ([]string, error)
 	}
@@ -33,37 +32,48 @@ func NewBaseModel(conn *gorm.DB, rds *rCache.RedisClientModel, opts ...cache.Opt
 	}
 }
 
-// Query 原生查询语句
-func (b *customBaseModel) Query(ret map[string]string, ql string, args ...any) error {
-	if ret == nil {
-		return errors.New("can not use a map of nil")
+// QueryCache 查询带缓存数据
+func (b *customBaseModel) QueryCache(key, ql string, args ...any) (map[string]string, error) {
+	var (
+		err    error
+		ckey   string
+		rdsCli = b.rds
+		ret    = make(map[string]string, 1)
+	)
+
+	if rdsCli != nil {
+		ckey = key + utils.Md5(ql)
+		if ok, _ := rdsCli.GetCache(ckey, &ret); ok {
+			return ret, nil
+		}
 	}
 
+	if ret, err = b.Query(ql, args...); err != nil {
+		return nil, err
+	}
+
+	if rdsCli != nil {
+		rdsCli.SetCache(ckey, ret, rdsCli.TimeOut)
+	}
+	return ret, nil
+}
+
+// Query 原生查询语句
+func (b *customBaseModel) Query(ql string, args ...any) (map[string]string, error) {
 	db, err := b.c.DB()
 	if err != nil {
-		return err
-	}
-
-	ckey := ""
-	rdsCli := b.rds
-	if rdsCli != nil {
-		ckey = utils.Md5(ql)
-		if r, _ := rdsCli.Get(ckey); r != "" {
-			if err = json.Unmarshal([]byte(r), &ret); err == nil {
-				println("found cache for sql:", ql)
-				return nil
-			}
-		}
+		return nil, err
 	}
 
 	rows, err := db.Query(ql, args...)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	defer rows.Close()
 
 	columns, _ := rows.Columns()
 	cLen := len(columns)
+	ret := make(map[string]string, cLen)
 	for rows.Next() {
 		values := make([]any, cLen)
 		valuePtrs := make([]any, cLen)
@@ -71,24 +81,39 @@ func (b *customBaseModel) Query(ret map[string]string, ql string, args ...any) e
 			valuePtrs[i] = &values[i]
 		}
 		if err := rows.Scan(valuePtrs...); err != nil {
-			return err
+			return nil, err
 		}
 		for i := 0; i < cLen; i++ {
 			ret[columns[i]] = typeToString(values[i])
 		}
 	}
 
+	return ret, nil
+}
+
+// QueryListCache 原生查询语句带缓存
+func (b *customBaseModel) QueryListCache(key, ql string, args ...any) ([]map[string]string, error) {
+	var (
+		err    error
+		ckey   string
+		rdsCli = b.rds
+		ret    = make([]map[string]string, 1)
+	)
+
 	if rdsCli != nil {
-		s, _ := json.Marshal(ret)
-		if err = rdsCli.Set(ckey, s, rdsCli.TimeOut); err != nil {
-			logx.Errorf("fail to set cache key: %s, sql: %s", ckey, ql)
+		ckey = key + utils.Md5(ql)
+		if ok, _ := rdsCli.GetCache(ckey, &ret); ok {
+			return ret, nil
 		}
 	}
 
-	return nil
+	if ret, err = b.QueryList(ql, args...); err != nil {
+		return nil, err
+	}
+	return ret, nil
 }
 
-// Query 原生查询语句
+// QueryList 原生查询语句
 func (b *customBaseModel) QueryList(ql string, args ...any) ([]map[string]string, error) {
 	rows, err := b.c.Raw(ql, args...).Rows()
 	if err != nil {
