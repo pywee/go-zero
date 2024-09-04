@@ -111,6 +111,10 @@ func toSQLWhere(where, limit string) string {
 
 func typeToString(v any) string {
 	value := reflect.ValueOf(v)
+	if !value.IsValid() {
+		return ""
+	}
+
 	vt := value.Type().String()
 	switch vt {
 	case "[]uint8":
