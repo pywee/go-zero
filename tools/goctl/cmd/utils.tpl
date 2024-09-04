@@ -29,22 +29,52 @@ type UserModel struct {
 // randSource 生成随机数
 var randSource = rand.New(rand.NewSource(time.Now().UnixNano()))
 
-func TrimStringFields(s interface{}) {
+func TrimStringFields(s interface{}) error {
 	value := reflect.ValueOf(s)
 	if value.Kind() == reflect.Ptr {
 		value = value.Elem()
 	}
-
 	if value.Kind() != reflect.Struct {
-		return
+		return nil
 	}
 
+	typ := value.Type()
 	for i := 0; i < value.NumField(); i++ {
 		field := value.Field(i)
-		if field.Type().Kind() == reflect.String && value.Field(i).CanSet() {
-			value.Field(i).SetString(strings.TrimSpace(field.String()))
+		typeField := typ.Field(i)
+		tag := typeField.Tag
+		fieldName := typeField.Name
+
+		if j := tag.Get("json"); j != "" {
+			fieldName = j
+		} else if j = tag.Get("path"); j != "" {
+			fieldName = j
+		} else if j = tag.Get("header"); j != "" {
+			fieldName = j
+		}
+
+		required := strings.Contains(fieldName, ",required")
+		if idx := strings.Index(fieldName, ","); idx != -1 {
+			fieldName = strings.TrimSpace(fieldName[:idx])
+		}
+
+		if ft := field.Type().Kind(); ft == reflect.String {
+			trimedField := strings.TrimSpace(field.String())
+			if required && trimedField == "" {
+				return errors.New("the value of field '" + fieldName + "' can not be empty")
+			}
+			if field.CanSet() {
+				value.Field(i).SetString(trimedField)
+			}
+		} else if required && ft >= 2 && ft <= 6 && field.Int() == 0 {
+			return errors.New("field '" + fieldName + "' can not be zero")
+		} else if ft >= 7 && ft <= 11 && required && field.Uint() == 0 {
+			return errors.New("field '" + fieldName + "' can not be zero")
+		} else if required && (ft == 13 || ft == 14) && field.Float() == 0 {
+			return errors.New("field '" + fieldName + "' can not be zero")
 		}
 	}
+	return nil
 }
 
 // Rand 生成指定个数的随机数
