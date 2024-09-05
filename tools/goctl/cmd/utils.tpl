@@ -2,7 +2,9 @@ package utils
 
 import (
 	"crypto/md5"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"log"
@@ -89,6 +91,13 @@ func Lottery(prizes []*Prize) *Prize {
 
 func Md5(data string) string {
 	return fmt.Sprintf("%x", md5.Sum([]byte(data)))
+}
+
+func SHA256() string {
+	hash := sha256.New()
+	hash.Write([]byte(input))
+	hashInBytes := hash.Sum(nil)
+	return hex.EncodeToString(hashInBytes)
 }
 
 // GetTimeDate 传入时间戳获取相对时间
