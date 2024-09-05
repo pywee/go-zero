@@ -7,6 +7,7 @@ import (
 	"errors"
 	"github.com/jinzhu/copier"{{else if eq .function "List"}}
 	"github.com/jinzhu/copier"
+	"github.com/pywee/fangzhoucms/utils"
 	{{end}}
 )
 
@@ -18,13 +19,12 @@ type {{.logic}} struct {
 	svcCtx *svc.ServiceContext
 }
 
-func New{{.logic}}(ctx context.Context, svcCtx *svc.ServiceContext, osType string) *{{.logic}} {
+func New{{.logic}}(ctx context.Context, svcCtx *svc.ServiceContext) *{{.logic}} {
 	return &{{.logic}}{
 		ctx:    ctx,
 		svcCtx: svcCtx,
 		uid: svcCtx.UID(ctx),
-		osType: osType,
-		// Logger: logx.WithContext(ctx),
+		osType: ctx.Value(utils.ContextType("osType")).(string),
 	}
 }
 
