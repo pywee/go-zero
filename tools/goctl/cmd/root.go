@@ -138,8 +138,8 @@ func init() {
 	rootCmd.AddCommand(migrate.Cmd, quickstart.Cmd, rpc.Cmd, tpl.Cmd, upgrade.Cmd)
 	rootCmd.Command.AddCommand(cobracompletefig.CreateCompletionSpecCommand())
 
-	createUtilFile()
-	createCacheFile()
+	// createUtilFile()
+	// createCacheFile()
 	rootCmd.MustInit()
 }
 
