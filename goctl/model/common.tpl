@@ -25,7 +25,7 @@ type (
 	}
 )
 
-func NewBaseModel(conn *gorm.DB, opts ...cache.Option) BaseModel {
+func NewBaseModel(conn *gorm.DB,rds *rCache.RedisClientModel, opts ...cache.Option) BaseModel {
 	return &customBaseModel{
 		rds: rds,
 		c:   conn,
