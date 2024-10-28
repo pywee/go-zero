@@ -1,4 +1,4 @@
-package mysqlModel
+package model
 
 import (
 	"reflect"
@@ -21,11 +21,13 @@ type (
 	}
 	customBaseModel struct {
 		c   *gorm.DB
+		rds *rCache.RedisClientModel
 	}
 )
 
 func NewBaseModel(conn *gorm.DB, opts ...cache.Option) BaseModel {
 	return &customBaseModel{
+		rds: rds,
 		c:   conn,
 	}
 }

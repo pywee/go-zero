@@ -14,7 +14,7 @@ win:
 linux:
 	GOOS=linux go build -ldflags="-s -w" -o goctl-linux goctl.go
 	$(if $(shell command -v upx), upx goctl-linux)
-	mv goctl-linux /root/go/bin/goctl
+	mv goctl-linux /root/go/bin/goctlPrivate
 
 image:
 	docker build --rm --platform linux/amd64 -t kevinwan/goctl:$(version) .
