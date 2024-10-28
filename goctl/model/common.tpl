@@ -91,7 +91,6 @@ func (b *customBaseModel) Query(ql string, args ...any) (map[string]string, erro
 	return ret, nil
 }
 
-<<<<<<< HEAD
 // QueryListCache 原生查询语句带缓存
 func (b *customBaseModel) QueryListCache(key, ql string, args ...any) ([]map[string]string, error) {
 	var (
@@ -118,8 +117,6 @@ func (b *customBaseModel) QueryListCache(key, ql string, args ...any) ([]map[str
 	return ret, nil
 }
 
-=======
->>>>>>> bluetti
 // QueryList 原生查询语句
 func (b *customBaseModel) QueryList(ql string, args ...any) ([]map[string]string, error) {
 	rows, err := b.c.Raw(ql, args...).Rows()
