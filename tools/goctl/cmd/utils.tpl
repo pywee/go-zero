@@ -130,6 +130,13 @@ func Md5(data string) string {
 	return fmt.Sprintf("%x", md5.Sum([]byte(data)))
 }
 
+func SHA256() string {
+	hash := sha256.New()
+	hash.Write([]byte(input))
+	hashInBytes := hash.Sum(nil)
+	return hex.EncodeToString(hashInBytes)
+}
+
 // GetTimeDate 传入时间戳获取相对时间
 // 取得指定时间戳当天初始时间
 func GetTimeDate(ts int64, addDay int) time.Time {

@@ -1,4 +1,4 @@
-package model
+package mysqlModel
 
 import (
 	"reflect"
@@ -21,14 +21,12 @@ type (
 	}
 	customBaseModel struct {
 		c   *gorm.DB
-		rds *rCache.RedisClientModel
 	}
 )
 
-func NewBaseModel(conn *gorm.DB, rds *rCache.RedisClientModel, opts ...cache.Option) BaseModel {
+func NewBaseModel(conn *gorm.DB, opts ...cache.Option) BaseModel {
 	return &customBaseModel{
 		c:   conn,
-		rds: rds,
 	}
 }
 
@@ -91,6 +89,7 @@ func (b *customBaseModel) Query(ql string, args ...any) (map[string]string, erro
 	return ret, nil
 }
 
+<<<<<<< HEAD
 // QueryListCache 原生查询语句带缓存
 func (b *customBaseModel) QueryListCache(key, ql string, args ...any) ([]map[string]string, error) {
 	var (
@@ -117,6 +116,8 @@ func (b *customBaseModel) QueryListCache(key, ql string, args ...any) ([]map[str
 	return ret, nil
 }
 
+=======
+>>>>>>> bluetti
 // QueryList 原生查询语句
 func (b *customBaseModel) QueryList(ql string, args ...any) ([]map[string]string, error) {
 	rows, err := b.c.Raw(ql, args...).Rows()
@@ -227,6 +228,33 @@ func typeToString(v any) string {
 	}
 	return ""
 }
+
+// case2CamelS 下划线转驼峰
+func case2CamelS(name string) string {
+	name = strings.Replace(name, "_", " ", -1)
+	name = strings.Title(name)
+	return strings.Replace(name, " ", "", -1)
+}
+
+// Name2Case 驼峰转下划线
+func Name2Case(str string) string {
+	m := make([]rune, 0, 10)
+	for k, v := range str {
+		if k == 0 && IsWordEn(v) {
+			v += 32
+		} else if IsWordEn(v) {
+			m = append(m, '_')
+			v += 32
+		}
+		m = append(m, v)
+	}
+	return string(m)
+}
+
+func IsWordEn(s rune) bool {
+	return s >= 65 && s <= 90
+}
+
 
 // byte2Str []byte to string
 //func byte2Str(b []byte) string {
