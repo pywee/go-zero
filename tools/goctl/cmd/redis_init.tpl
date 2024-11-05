@@ -18,7 +18,7 @@ type RedisClientModel struct {
 }
 
 // Init 创建 redis 客户端
-func Init(host, pwd string) *RedisClientModel {
+func Init(host, pwd string, t time.Duration) *RedisClientModel {
 	return &RedisClientModel{
 		lk:  &sync.Mutex{},
 		ctx: context.Background(),
