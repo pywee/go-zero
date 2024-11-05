@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -42,7 +43,7 @@ func (b *customBaseModel) QueryCache(key, ql string, args ...any) (map[string]st
 	)
 
 	if rdsCli != nil {
-		ckey = key + utils.Md5(ql)
+		ckey = key + utils.Md5(ql + fmt.Sprintf("%v", args))
 		if ok, _ := rdsCli.GetCache(ckey, &ret); ok {
 			return ret, nil
 		}
@@ -101,7 +102,7 @@ func (b *customBaseModel) QueryListCache(key, ql string, args ...any) ([]map[str
 	)
 
 	if rdsCli != nil {
-		ckey = key + utils.Md5(ql)
+		ckey = key + utils.Md5(ql + fmt.Sprintf("%v", args))
 		if ok, _ := rdsCli.GetCache(ckey, &ret); ok {
 			return ret, nil
 		}
@@ -209,8 +210,6 @@ func typeToString(v any) string {
 
 	vt := value.Type().String()
 	switch vt {
-	case "[]uint8":
-		return string(value.Bytes())
 	case "string":
 		return value.String()
 	case "int64", "int32", "int16", "int8", "int":
@@ -219,6 +218,8 @@ func typeToString(v any) string {
 		return strconv.FormatUint(value.Uint(), 10)
 	case "float64", "float32":
 		return strconv.FormatFloat(value.Float(), 'f', -1, 64)
+	case "[]uint8":
+		return string(value.Bytes())
 	case "bool":
 		if vb := value.Bool(); vb {
 			return "true"
@@ -229,11 +230,11 @@ func typeToString(v any) string {
 }
 
 // case2CamelS 下划线转驼峰
-func case2CamelS(name string) string {
-	name = strings.Replace(name, "_", " ", -1)
-	name = strings.Title(name)
-	return strings.Replace(name, " ", "", -1)
-}
+// func case2CamelS(name string) string {
+	// name = strings.Replace(name, "_", " ", -1)
+	// name = strings.Title(name)
+	// return strings.Replace(name, " ", "", -1)
+// }
 
 // Name2Case 驼峰转下划线
 func Name2Case(str string) string {
@@ -253,7 +254,6 @@ func Name2Case(str string) string {
 func IsWordEn(s rune) bool {
 	return s >= 65 && s <= 90
 }
-
 
 // byte2Str []byte to string
 //func byte2Str(b []byte) string {
