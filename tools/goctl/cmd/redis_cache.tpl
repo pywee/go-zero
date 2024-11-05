@@ -45,7 +45,7 @@ func (c *RedisClientModel) SetCache(key string, value interface{}, expireTs time
 		return false
 	}
 
-	log.Printf("-> set DATA cache of key: %s", key)
+	log.Println("-> set DATA cache of key:", key)
 	return true
 }
 
@@ -74,7 +74,7 @@ func (c *RedisClientModel) GetCache(key string, value interface{}) (bool, error)
 		return false, err
 	}
 
-	log.Println("<- get DATA cache", key)
+	log.Println("<- get DATA cache of key:", key)
 	return true, nil
 }
 
