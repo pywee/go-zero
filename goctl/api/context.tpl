@@ -52,3 +52,11 @@ func (l *ServiceContext) UID(ctx context.Context) int64 {
 	}
 	return 0
 }
+
+// GetOsType 获取前台OS类型
+func (l *ServiceContext) GetOsType(ctx context.Context) uint8 {
+	if s := ctx.Value(utils.ContextType("osType")); s != nil {
+		return s.(uint8)
+	}
+	return 0
+}

@@ -1,21 +1,20 @@
 package {{.pkgName}}
 
 import (
-	"gitea.bluettipower.com/bluettipower/user-service/utils"
 	{{.imports}}{{if eq .function "Update"}}
+	"github.com/pywee/fangzhoucms/utils"
 	"github.com/jinzhu/copier"{{else if eq .function "Get"}}
 	"github.com/jinzhu/copier"{{else if eq .function "Create"}}
 	"errors"
 	"github.com/jinzhu/copier"{{else if eq .function "List"}}
 	"github.com/jinzhu/copier"
-	"github.com/pywee/fangzhoucms/utils"
 	{{end}}
 )
 
 type {{.logic}} struct {
 	logx.Logger
 	uid int64
-	osType string
+	osType uint8
 	ctx    context.Context
 	svcCtx *svc.ServiceContext
 }
@@ -25,7 +24,7 @@ func New{{.logic}}(ctx context.Context, svcCtx *svc.ServiceContext) *{{.logic}} 
 		ctx:    ctx,
 		svcCtx: svcCtx,
 		uid: svcCtx.UID(ctx),
-		osType: ctx.Value(utils.ContextType("osType")).(string),
+		osType: svcCtx.GetOsType(ctx),
 	}
 }
 

@@ -139,7 +139,7 @@ func init() {
 	rootCmd.Command.AddCommand(cobracompletefig.CreateCompletionSpecCommand())
 
 	// createUtilFile()
-	// createCacheFile()
+	createCacheFile()
 	rootCmd.MustInit()
 }
 
