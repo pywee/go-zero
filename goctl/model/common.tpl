@@ -1,6 +1,7 @@
 package model
 
 import (
+	"crypto/md5"
 	"fmt"
 	"reflect"
 	"strconv"
@@ -253,6 +254,10 @@ func Name2Case(str string) string {
 
 func IsWordEn(s rune) bool {
 	return s >= 65 && s <= 90
+}
+
+func Md5(data string) string {
+	return fmt.Sprintf("%x", md5.Sum([]byte(data)))
 }
 
 // byte2Str []byte to string
