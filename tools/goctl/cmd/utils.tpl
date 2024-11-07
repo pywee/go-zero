@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"log"
 	"math/rand"
 	"reflect"
 	"regexp"
@@ -31,6 +30,38 @@ type UserModel struct {
 // randSource 生成随机数
 var randSource = rand.New(rand.NewSource(time.Now().UnixNano()))
 
+var phoneVers = []string{
+	"188",
+	"134",
+	"135",
+	"137",
+	"138",
+	"136",
+	"189",
+	"131",
+	"132",
+	"133",
+	"139",
+	"145",
+	"150",
+	"151",
+	"152",
+	"153",
+	"154",
+	"155",
+	"156",
+	"157",
+	"158",
+	"159",
+	"181",
+	"182",
+	"183",
+	"186",
+	"199",
+	"176",
+}
+
+// TrimStringFields 入参检查
 func TrimStringFields(s interface{}) error {
 	value := reflect.ValueOf(s)
 	if value.Kind() == reflect.Ptr {
@@ -130,13 +161,6 @@ func Md5(data string) string {
 	return fmt.Sprintf("%x", md5.Sum([]byte(data)))
 }
 
-func SHA256() string {
-	hash := sha256.New()
-	hash.Write([]byte(input))
-	hashInBytes := hash.Sum(nil)
-	return hex.EncodeToString(hashInBytes)
-}
-
 // GetTimeDate 传入时间戳获取相对时间
 // 取得指定时间戳当天初始时间
 func GetTimeDate(ts int64, addDay int) time.Time {
@@ -174,41 +198,10 @@ func CheckUserName(name string) bool {
 	return false
 }
 
-var phoneVers = []string{
-	"188",
-	"134",
-	"135",
-	"137",
-	"138",
-	"136",
-	"189",
-	"131",
-	"132",
-	"133",
-	"139",
-	"145",
-	"150",
-	"151",
-	"152",
-	"153",
-	"154",
-	"155",
-	"156",
-	"157",
-	"158",
-	"159",
-	"181",
-	"182",
-	"183",
-	"186",
-	"199",
-	"176",
-}
-
-func PhoneVerify(phone string) error {
-	// 外部已经做了检查
+// PhoneVerify 校验手机号是否合法
+func PhoneVerify(phone string) bool {
 	if ok, _ := regexp.MatchString(`^1[0-9]{10}$`, phone); !ok {
-		return errors.New("手机号格式有误")
+		return false
 	}
 
 	phoneOK := false
@@ -219,13 +212,10 @@ func PhoneVerify(phone string) error {
 			break
 		}
 	}
-	if !phoneOK {
-		log.Printf("phone Number can not be verified, phone: %s", phone)
-		return errors.New("手机号格式有误")
-	}
-	return nil
+	return phoneOK
 }
 
+// HPhone 隐藏手机号中间四位
 func HPhone(phone string) string {
 	if len(phone) != 11 {
 		return phone
