@@ -230,6 +230,17 @@ func typeToString(v any) string {
 	return ""
 }
 
+// GetOffsetLimit 根据给出的参数获取分页数据
+func GetOffsetLimit(page, size int32) string {
+	if page <= 0 {
+		page = 1
+	}
+	if size <= 0 {
+		size = 10
+	}
+	return fmt.Sprintf(" LIMIT %d,%d", page*size-size, size)
+}
+
 // case2CamelS 下划线转驼峰
 // func case2CamelS(name string) string {
 	// name = strings.Replace(name, "_", " ", -1)
