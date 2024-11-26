@@ -196,10 +196,9 @@ func toSQLWhere(where, limit string) string {
 	} else if where != "" {
 		where = "where " + where
 	}
-	if limit != "" && !strings.Contains(strings.ToLower(where), "limit ") {
+	if limit != "" && !strings.Contains(sw, "limit ") {
 		where += " LIMIT " + limit
 	}
-
 	return where
 }
 
