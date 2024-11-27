@@ -153,6 +153,7 @@ func (m *custom{{.upperStartCamelObject}}Model) Insert(data *{{.upperStartCamelO
 	}
 
 	ret := m.c.Table(m.table).Create(data)
+	m.rds.DelCache("model:" + m.table + ":where:list:*")
 	// return ret.RowsAffected, nil
 	return data.Id, ret.Error
 }
