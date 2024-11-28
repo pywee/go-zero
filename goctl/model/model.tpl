@@ -3,7 +3,7 @@ package {{.pkg}}
 import (
 	"fmt"
 	"time"
-	// "strings"
+	"strings"
 	"gorm.io/gorm"
 	rCache "github.com/pywee/fangzhoucms/cache"
 	// "github.com/zeromicro/go-zero/core/stores/cache"
@@ -116,6 +116,13 @@ func (m *custom{{.upperStartCamelObject}}Model) GetListByWhere(fields, where str
 	if err := m.c.Raw(query, args...).Scan(&ret.Resp).Error; err != nil {
 		return nil, 0
 	}
+
+	// 此处会潜在 bug，因为如果查询语句比较复杂，可能会出错
+	if idx := strings.Index(where, "order by "); idx != -1 {
+		where = where[:idx]
+	} else if idx := strings.Index(where, "limit "); idx != -1 {
+		where = where[:idx]
+	}
 	ret.Count, _ = m.Count(where, args...)
 	m.rds.SetCache(key, ret, m.rds.TimeOut)
 
@@ -129,12 +136,6 @@ func (m *custom{{.upperStartCamelObject}}Model) Count(where string, args ...any)
 	}
 
 	query := fmt.Sprintf("select count(*) c from `%s` %s", m.table, toSQLWhere(where, ""))
-
-	// 此处会潜在 bug，因为如果查询语句比较复杂，可能会出错
-	if idx := strings.Index(strings.ToLower(query), "order by "); idx != -1 {
-		query = query[:idx]
-	}
-
 	err := m.c.Raw(query, args...).Scan(&resp).Error
 	return resp.C, err
 }
