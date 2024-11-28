@@ -129,6 +129,12 @@ func (m *custom{{.upperStartCamelObject}}Model) Count(where string, args ...any)
 	}
 
 	query := fmt.Sprintf("select count(*) c from `%s` %s", m.table, toSQLWhere(where, ""))
+
+	// 此处会潜在 bug，因为如果查询语句比较复杂，可能会出错
+	if idx := strings.Index(strings.ToLower(query), "order by "); idx != -1 {
+		query = query[:idx]
+	}
+
 	err := m.c.Raw(query, args...).Scan(&resp).Error
 	return resp.C, err
 }
