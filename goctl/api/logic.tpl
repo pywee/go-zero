@@ -3,7 +3,6 @@ package {{.pkgName}}
 import (
 	{{.imports}}{{if eq .function "Update"}}
 	"github.com/pywee/fangzhoucms/utils"
-	"github.com/jinzhu/copier"{{else if eq .function "Get"}}
 	"github.com/jinzhu/copier"{{else if eq .function "Create"}} "errors"
 	"github.com/jinzhu/copier"{{else if eq .function "List"}}
 	"github.com/jinzhu/copier"{{end}}
