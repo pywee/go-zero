@@ -153,9 +153,11 @@ func (m *custom{{.upperStartCamelObject}}Model) Sum(sumField, where string, args
 
 // Insert 新增
 func (m *custom{{.upperStartCamelObject}}Model) Insert(data *{{.upperStartCamelObject}}) (int64, error) {
+	ts := time.Now().Unix()
 	if data.CreateTs == 0 {
-		ts := time.Now().Unix()
 		data.CreateTs = ts
+	}
+	if data.UpdateTs == 0 {
 		data.UpdateTs = ts
 	}
 
@@ -167,9 +169,7 @@ func (m *custom{{.upperStartCamelObject}}Model) Insert(data *{{.upperStartCamelO
 
 // Update 更新单条记录
 func (m *custom{{.upperStartCamelObject}}Model) Update(data *{{.upperStartCamelObject}}) error {
-	if data.UpdateTs == 0 {
-		data.UpdateTs = time.Now().Unix()
-	}
+	data.UpdateTs = time.Now().Unix()
 	ret := m.c.Table(m.table).Save(data)
 	if ret.Error != nil {
 		return ret.Error
