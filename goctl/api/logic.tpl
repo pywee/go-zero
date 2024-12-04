@@ -1,11 +1,8 @@
 package {{.pkgName}}
 
 import (
-	{{.imports}}{{if eq .function "Update"}}
-	"github.com/pywee/fangzhoucms/utils"
-	"github.com/jinzhu/copier"{{else if eq .function "Create"}} "errors"
-	"github.com/jinzhu/copier"{{else if eq .function "List"}}
-	"github.com/jinzhu/copier"{{end}}
+	{{.imports}}{{if eq .function "x"}}
+	"github.com/pywee/fangzhoucms/utils"{{end}}
 )
 
 type {{.logic}} struct {
@@ -18,11 +15,12 @@ type {{.logic}} struct {
 }
 
 func New{{.logic}}(ctx context.Context, svcCtx *svc.ServiceContext) *{{.logic}} {
+	user := svcCtx.User(ctx)
 	return &{{.logic}}{
 		ctx:    ctx,
 		svcCtx: svcCtx,
-		uid: svcCtx.Uid(ctx),
-		wid: svcCtx.Wid(ctx),
+		uid:    user.Id,
+		wid:    user.Wid,
 		osType: svcCtx.GetOsType(ctx),
 	}
 }
