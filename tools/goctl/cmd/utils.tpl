@@ -105,6 +105,13 @@ func TrimStringFields(s interface{}) error {
 			return errors.New("field '" + fieldName + "' can not be zero")
 		} else if required && (ft == 13 || ft == 14) && field.Float() == 0 {
 			return errors.New("field '" + fieldName + "' can not be zero")
+		} else if ft == reflect.Struct {
+			s := value.FieldByName(fieldName)
+			for j := 0; j < s.NumField(); j++ {
+				if sf := s.Field(j); sf.Type().Kind() == reflect.String && sf.CanSet() {
+					sf.SetString(strings.TrimSpace(sf.String()))
+				}
+			}
 		}
 	}
 	return nil
