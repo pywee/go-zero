@@ -24,6 +24,7 @@ type (
 		Sum(string, string, ...any) (int64, error)
 		Insert(*{{.upperStartCamelObject}}) (int64, error)
 		Delete(int64) (int64, error)
+		HardDelete(int64) error
 		DeleteByWhere(string, ...any) (int64, error)
 		Update(*{{.upperStartCamelObject}}) error
 		UpdateByWhere(map[string]any, string, ...any) (int64, error)
@@ -209,4 +210,11 @@ func (m *custom{{.upperStartCamelObject}}Model) DeleteByWhere(where string, args
 	})
 	m.rds.DelCache("model:" + m.table + ":*")
 	return ret.RowsAffected, ret.Error
+}
+
+// HardDelete 硬删除操作
+func (m *custom{{.upperStartCamelObject}}Model) HardDelete(ID int64) error {
+	ret := m.c.Exec("DELETE FROM `"+m.table+"` WHERE id=?", ID)
+	m.rds.DelCache("model:" + m.table + ":*")
+	return ret.Error
 }
