@@ -11,6 +11,7 @@ import (
 
 type (
 	BaseModel interface {
+		Exec(string, ...any) error
 		Query(map[string]string, string, ...any) error
 		QueryList(string, ...any) ([]map[string]string, error)
 	}
@@ -23,6 +24,16 @@ func NewBaseModel(conn *gorm.DB, opts ...cache.Option) BaseModel {
 	return &customBaseModel{
 		c:   conn,
 	}
+}
+
+// Exec 原生执行语句
+func (b *customBaseModel) Exec(sql string, args ...any) error {
+	db, err := b.c.DB()
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec(sql, args...)
+	return err
 }
 
 // Query 原生查询语句
