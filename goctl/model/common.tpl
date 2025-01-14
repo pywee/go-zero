@@ -15,6 +15,7 @@ import (
 
 type (
 	BaseModel interface {
+		Exec(string, ...any) error
 		QueryCache(string, string, ...any) (map[string]string, error)
 		QueryListCache(string, string, ...any) ([]map[string]string, error)
 		Query(string, ...any) (map[string]string, error)
@@ -32,6 +33,16 @@ func NewBaseModel(conn *gorm.DB,rds *rCache.RedisClientModel, opts ...cache.Opti
 		rds: rds,
 		c:   conn,
 	}
+}
+
+// Exec 原生执行语句
+func (b *customBaseModel) Exec(sql string, args ...any) error {
+	db, err := b.c.DB()
+	if err != nil {
+		return err
+	}
+	_, err = db.Exec(sql, args...)
+	return err
 }
 
 // QueryCache 查询带缓存数据
