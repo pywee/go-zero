@@ -86,7 +86,10 @@ func TrimStringFields(s interface{}) error {
 			fieldName = j
 		}
 
+		fieldName = strings.ReplaceAll(fieldName, " ", "")
 		required := strings.Contains(fieldName, ",required")
+		lower := strings.Contains(fieldName, ",lower")
+		upper := strings.Contains(fieldName, ",upper")
 		if idx := strings.Index(fieldName, ","); idx != -1 {
 			fieldName = strings.TrimSpace(fieldName[:idx])
 		}
@@ -97,6 +100,11 @@ func TrimStringFields(s interface{}) error {
 				return errors.New("the value of field '" + fieldName + "' can not be empty")
 			}
 			if field.CanSet() {
+				if lower {
+					trimedField = strings.ToLower(trimedField)
+				} else if upper {
+					trimedField = strings.ToUpper(trimedField)
+				}
 				value.Field(i).SetString(trimedField)
 			}
 		} else if required && ft >= 2 && ft <= 6 && field.Int() == 0 {
