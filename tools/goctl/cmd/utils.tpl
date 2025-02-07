@@ -127,6 +127,10 @@ func Rand(num int) string {
 	return r
 }
 
+func RandNum(min, max int) int {
+	return randSource.Intn(max-min+1) + min
+}
+
 type Prize struct {
 	ID     int32
 	Chance float64
