@@ -25,8 +25,8 @@ func RandNum(min, max int) int {
 	return randSource.Intn(max-min+1) + min
 }
 
-// randString 生成随机字符串
-func randString(length int) string {
+// RandString 生成随机字符串
+func RandString(length int) string {
 	result := make([]byte, length)
 	letterBytesLen := len(letterBytes)
 	for i := range result {
