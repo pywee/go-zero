@@ -9,7 +9,7 @@ import (
 // randSource 生成一个 0.0 到 1.0 的随机数
 var randSource = rand.New(rand.NewSource(time.Now().UnixNano()))
 
-const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_|-"
+const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_-"
 
 // Rand 生成指定个数的随机数
 func Rand(num int) string {
