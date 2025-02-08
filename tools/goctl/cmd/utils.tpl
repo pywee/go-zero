@@ -7,12 +7,9 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"math/rand"
 	"reflect"
 	"regexp"
-	"strconv"
 	"strings"
-	"time"
 )
 
 type ContextType string
@@ -26,9 +23,6 @@ type UserModel struct {
 	UpdateTs int64  `json:"updateTs"`
 	CreateTs int64  `json:"createTs"`
 }
-
-// randSource 生成随机数
-var randSource = rand.New(rand.NewSource(time.Now().UnixNano()))
 
 var phoneVers = []string{
 	"188",
@@ -125,50 +119,6 @@ func TrimStringFields(s interface{}) error {
 	return nil
 }
 
-// Rand 生成指定个数的随机数
-func Rand(num int) string {
-	r := ""
-	for i := 0; i < num; i++ {
-		number := randSource.Intn(10)
-		r += strconv.Itoa(number)
-	}
-	return r
-}
-
-func RandNum(min, max int) int {
-	return randSource.Intn(max-min+1) + min
-}
-
-type Prize struct {
-	ID     int32
-	Chance float64
-}
-
-// Lottery 抽奖函数，接收奖品列表并返回中奖奖品名称
-func Lottery(prizes []*Prize) *Prize {
-	// 生成一个 0.0 到 1.0 的随机数
-	r := rand.New(rand.NewSource(time.Now().UnixNano()))
-
-	// 计算总的中奖几率
-	// 并根据该几率计算出随机数最大取值范围
-	totalChance := 0.0
-	for _, p := range prizes {
-		totalChance += p.Chance
-	}
-
-	// randNum := r.Float64() * totalChance
-	randNum := r.Float64() * 1
-
-	cumulativeChance := 0.0
-	for _, p := range prizes {
-		cumulativeChance += p.Chance
-		if randNum < cumulativeChance {
-			return p
-		}
-	}
-	return nil
-}
-
 func SHA256(input string) string {
 	hash := sha256.New()
 	hash.Write([]byte(input))
@@ -178,34 +128,6 @@ func SHA256(input string) string {
 
 func Md5(data string) string {
 	return fmt.Sprintf("%x", md5.Sum([]byte(data)))
-}
-
-// GetTimeDate 传入时间戳获取相对时间
-// 取得指定时间戳当天初始时间
-func GetTimeDate(ts int64, addDay int) time.Time {
-	var cstSh, _ = time.LoadLocation("Asia/Shanghai")
-	b := time.Unix(ts, 0)
-	b = b.In(cstSh)
-	year, month, day := b.Date()
-	return time.Date(year, month, day, 0, 0, 0, 0, time.Now().Location()).AddDate(0, 0, addDay)
-}
-
-// GetMonthTimeDate 传入时间戳获取相对时间
-// 取得指定月份戳初始时间
-func GetMonthTimeDate(ts int64, mon int) time.Time {
-	var cstSh, _ = time.LoadLocation("Asia/Shanghai")
-	b := time.Unix(ts, 0)
-	b = b.In(cstSh)
-	year, month, day := b.Date()
-	return time.Date(year, month, day, 0, 0, 0, 0, time.Now().Location()).AddDate(0, mon, 0)
-}
-
-// GetThisMonthTime 获取某月第一天的时间
-// 传入0获取本月，-1获取上月，1获取下月
-func GetThisMonthTime(m time.Month) time.Time {
-	year, month, _ := time.Now().Date()
-	month += m
-	return time.Date(year, month, 1, 0, 0, 0, 0, time.Local)
 }
 
 // CheckUserName 校验用户名是否合法
@@ -252,4 +174,13 @@ func DecodeBase64(s string) string {
 		return ""
 	}
 	return string(decoded)
+}
+
+func InArray(arr []string, str string) bool {
+	for _, v := range arr {
+		if v == str {
+			return true
+		}
+	}
+	return false
 }

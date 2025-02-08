@@ -40,6 +40,10 @@ var (
 	usageTpl string
 	//go:embed utils.tpl
 	utilsTpl string
+	//go:embed utilsRand.tpl
+	utilsRandTpl string
+	//go:embed utilsTime.tpl
+	utilsTimeTpl string
 	//go:embed resp.tpl
 	respTpl string
 	//go:embed redis_cache.tpl
@@ -156,6 +160,8 @@ func createUtilFile() error {
 
 	files := map[string]string{
 		"/utils.go": utilsTpl,
+		"/time.go":  utilsTimeTpl,
+		"/rand.go":  utilsRandTpl,
 		"/resp.go":  respTpl,
 	}
 
