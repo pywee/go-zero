@@ -26,11 +26,22 @@ func RandNum(min, max int) int {
 }
 
 // RandString 生成随机字符串
+// 第一个和最后一个字符不能是 _ 或 -
 func RandString(length int) string {
 	result := make([]byte, length)
 	letterBytesLen := len(letterBytes)
 	for i := range result {
-		result[i] = letterBytes[randSource.Intn(letterBytesLen)]
+		var r byte
+		if i == 0 || i == length-1 {
+			for {
+				if r = letterBytes[randSource.Intn(letterBytesLen)]; r != '_' && r != '-' {
+					break
+				}
+			}
+		} else {
+			r = letterBytes[randSource.Intn(letterBytesLen)]
+		}
+		result[i] = r
 	}
 	return string(result)
 }
