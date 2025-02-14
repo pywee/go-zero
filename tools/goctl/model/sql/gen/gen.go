@@ -345,7 +345,6 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 
 	s := `type ` + case2CamelS(table.Name.ToCamel()) + ` struct {
 `
-	fmt.Println(s, ":::")
 	for _, v := range table.Fields {
 		if v.Comment != "" {
 			v.Comment = "// " + v.Comment
