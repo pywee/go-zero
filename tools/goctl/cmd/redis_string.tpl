@@ -21,6 +21,15 @@ func (c *RedisClientModel) Get(key string) (string, error) {
 	return ret, nil
 }
 
+// GetInt 获取指定 key 的值
+func (c *RedisClientModel) GetInt(key string) (int64, error) {
+	ret, err := c.rdsCli.Get(c.ctx, key).Int64()
+	if c.IsRedisNotNil(err) {
+		return 0, err
+	}
+	return ret, nil
+}
+
 // GetBytes 获取指定 key 的值
 func (c *RedisClientModel) GetBytes(key string) []byte {
 	ret, err := c.rdsCli.Get(c.ctx, key).Bytes()

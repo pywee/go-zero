@@ -7,20 +7,21 @@ import (
 
 type {{.logic}} struct {
 	logx.Logger
-	uid int64
-	wid int64
 	osType uint8
 	ctx    context.Context
+	user   *types.LoggedInUser
 	svcCtx *svc.ServiceContext
 }
 
 func New{{.logic}}(ctx context.Context, svcCtx *svc.ServiceContext) *{{.logic}} {
-	user := svcCtx.User(ctx)
+	var u *types.LoggedInUser
+	if user := ctx.Value(utils.ContextType("user")); user != nil {
+		u = user.(*types.LoggedInUser)
+	}
 	return &{{.logic}}{
 		ctx:    ctx,
+		user:   u,
 		svcCtx: svcCtx,
-		uid:    user.Id,
-		wid:    user.Wid,
 		osType: svcCtx.GetOsType(ctx),
 	}
 }
