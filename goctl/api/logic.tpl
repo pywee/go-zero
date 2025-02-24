@@ -3,6 +3,7 @@ package {{.pkgName}}
 import (
 	{{.imports}}{{if eq .function "x"}}
 	"github.com/pywee/fangzhoucms/utils"{{end}}
+	"github.com/pywee/fangzhoucms/utils"
 )
 
 type {{.logic}} struct {
