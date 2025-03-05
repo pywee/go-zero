@@ -28,20 +28,18 @@ func RandNum(min, max int) int {
 // RandString 生成随机字符串
 // length 字符串长度
 // symbool 是否允许包含特殊字符
-// 第一个和最后一个字符不能是 _ 或 -
-func RandString(length int, symbool bool) string {
+func RandString(length int32, symbool bool) string {
 	result := make([]byte, length)
 	letterBytesLen := len(letterBytes)
 	for i := range result {
-		var r byte
-		if symbool && (i == 0 || i == length-1) {
+		r := letterBytes[randSource.Intn(letterBytesLen)]
+		if !symbool && (r == '_' || r == '-') {
 			for {
-				if r = letterBytes[randSource.Intn(letterBytesLen)]; r != '_' && r != '-' {
-					break
+				if r = letterBytes[randSource.Intn(letterBytesLen)]; r == '_' || r == '-' {
+					continue
 				}
+				break
 			}
-		} else {
-			r = letterBytes[randSource.Intn(letterBytesLen)]
 		}
 		result[i] = r
 	}
