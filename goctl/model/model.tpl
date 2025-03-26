@@ -17,9 +17,12 @@ var _ {{.upperStartCamelObject}}Model = (*custom{{.upperStartCamelObject}}Model)
 // 2024.05.14 修改 
 type (
 	{{.upperStartCamelObject}}Model interface {
-		Get(string, int64) (*{{.upperStartCamelObject}}, error)
-		GetByWhere(string, string, ...any) (*{{.upperStartCamelObject}}, error)
-		GetListByWhere(string, string, ...any) ([]*{{.upperStartCamelObject}}, int64)
+		Get(int64) (*{{.upperStartCamelObject}}, error)
+		GetByWhere(string, ...any) (*{{.upperStartCamelObject}}, error)
+		GetListByWhere(string, ...any) ([]*{{.upperStartCamelObject}}, int64)
+		GetWithFields(string, int64) (*{{.upperStartCamelObject}}, error)
+		GetByWhereWithFields(string, string, ...any) (*{{.upperStartCamelObject}}, error)
+		GetListByWhereWithFields(string, string, ...any) ([]*{{.upperStartCamelObject}}, int64)
 		Count(string, ...any) (int64, error)
 		Sum(string, string, ...any) (int64, error)
 		Insert(*{{.upperStartCamelObject}}) (int64, error)
@@ -54,7 +57,23 @@ func New{{.upperStartCamelObject}}Model(conn *gorm.DB{{if .withCache}}, rds *rCa
 }
 
 // Get 根据 ID 获取一条
-func (m *custom{{.upperStartCamelObject}}Model) Get(fields string, id int64) (*{{.upperStartCamelObject}}, error) {
+func (m *custom{{.upperStartCamelObject}}Model) Get(id int64) (*{{.upperStartCamelObject}}, error) {
+	return m.GetWithFields("*", id)
+}
+
+// GetByWhere 根据条件获取一条记录
+func (m *custom{{.upperStartCamelObject}}Model) GetByWhere(where string, args ...any) (*{{.upperStartCamelObject}}, error) {
+	return m.GetByWhereWithFields("*", where, args...)
+}
+
+// GetListByWhere 根据条件获取多条记录
+func (m *custom{{.upperStartCamelObject}}Model) GetListByWhere(where string, args ...any) ([]*{{.upperStartCamelObject}}, int64) {
+	return m.GetListByWhereWithFields("*", where, args...)
+}
+
+// Get 根据 ID 获取一条记录
+// 可选要获取的字段
+func (m *custom{{.upperStartCamelObject}}Model) GetWithFields(fields string, id int64) (*{{.upperStartCamelObject}}, error) {
 	var resp {{.upperStartCamelObject}}
 	if fields == "" {
 		fields = "*"
@@ -62,6 +81,9 @@ func (m *custom{{.upperStartCamelObject}}Model) Get(fields string, id int64) (*{
 
 	key := fmt.Sprintf(m.cacheKey, m.table, id)
 	if ok, _ := m.rds.GetCache(key, &resp); ok {
+		if resp.Id == 0 {
+			return nil, NotFoundRecord
+		}
 		return &resp, nil
 	}
 	
@@ -69,16 +91,20 @@ func (m *custom{{.upperStartCamelObject}}Model) Get(fields string, id int64) (*{
 	if err := m.c.Raw(query, id).Scan(&resp).Error; err != nil {
 		return nil, err
 	}
+
 	if resp.Id == 0 {
+		m.rds.SetCache(key, resp, time.Minute)
 		return nil, NotFoundRecord
 	}
+
 	m.rds.SetCache(key, resp, m.rds.TimeOut)
 
 	return &resp, nil
 }
 
 // GetByWhere 根据条件获取一条记录
-func (m *custom{{.upperStartCamelObject}}Model) GetByWhere(fields, where string, args ...any) (*{{.upperStartCamelObject}}, error) {
+// 可选要获取的字段
+func (m *custom{{.upperStartCamelObject}}Model) GetByWhereWithFields(fields, where string, args ...any) (*{{.upperStartCamelObject}}, error) {
 	if fields == "" {
 		fields = "*"
 	}
@@ -87,13 +113,18 @@ func (m *custom{{.upperStartCamelObject}}Model) GetByWhere(fields, where string,
 	query := fmt.Sprintf("select %s from `%s` %s", fields, m.table, toSQLWhere(where, "1"))
 	key := "model:" + m.table + ":where:get:" + Md5(fmt.Sprintf("%s%v", query, args))
 	if ok, _ := m.rds.GetCache(key, &resp); ok {
+		if resp.Id == 0 {
+			return nil, nil
+		}
 		return &resp, nil
 	}
 
 	if err := m.c.Raw(query, args...).Scan(&resp).Error; err != nil {
 		return nil, err
 	}
+
 	if resp.Id == 0 {
+		m.rds.SetCache(key, resp, time.Minute)
 		return nil, nil
 	}
 	m.rds.SetCache(key, resp, m.rds.TimeOut)
@@ -101,8 +132,9 @@ func (m *custom{{.upperStartCamelObject}}Model) GetByWhere(fields, where string,
 	return &resp, nil
 }
 
-// GetListByWhere 根据条件获取多条记录
-func (m *custom{{.upperStartCamelObject}}Model) GetListByWhere(fields, where string, args ...any) ([]*{{.upperStartCamelObject}}, int64) {
+// GetListByWhereWithFields 根据条件获取多条记录
+// 可选要获取的字段
+func (m *custom{{.upperStartCamelObject}}Model) GetListByWhereWithFields(fields, where string, args ...any) ([]*{{.upperStartCamelObject}}, int64) {
 	if fields == "" {
 		fields = "*"
 	}
