@@ -186,12 +186,11 @@ func (m *custom{{.upperStartCamelObject}}Model) Sum(sumField, where string, args
 
 // Insert 新增
 func (m *custom{{.upperStartCamelObject}}Model) Insert(data *{{.upperStartCamelObject}}) (int64, error) {
-	ts := time.Now().Unix()
 	if data.CreateTs == 0 {
-		data.CreateTs = ts
+		data.CreateTs = time.Now().Unix()
 	}
 	if data.UpdateTs == 0 {
-		data.UpdateTs = ts
+		data.UpdateTs = data.CreateTs
 	}
 
 	ret := m.c.Table(m.table).Create(data)
