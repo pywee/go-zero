@@ -36,7 +36,6 @@ type (
 	custom{{.upperStartCamelObject}}Model struct {
 		table string
 		c *gorm.DB
-		cacheKey string
 		rds *rCache.RedisClientModel
 	}
 
@@ -52,7 +51,6 @@ func New{{.upperStartCamelObject}}Model(conn *gorm.DB{{if .withCache}}, rds *rCa
 		c: conn,
 		rds: rds,
 		table: "{{.lowerStartCamelObject}}",
-		cacheKey: "model:%s:id:%d",
 	}
 }
 
@@ -79,7 +77,7 @@ func (m *custom{{.upperStartCamelObject}}Model) GetWithFields(fields string, id 
 		fields = "*"
 	}
 
-	key := fmt.Sprintf(m.cacheKey, m.table, id)
+	key := fmt.Sprintf("model:%s:id:%d", m.table, id)
 	if ok, _ := m.rds.GetCache(key, &resp); ok {
 		if resp.Id == 0 {
 			return nil, NotFoundRecord
@@ -111,7 +109,7 @@ func (m *custom{{.upperStartCamelObject}}Model) GetByWhereWithFields(fields, whe
 
 	var resp {{.upperStartCamelObject}}
 	query := fmt.Sprintf("select %s from `%s` %s", fields, m.table, toSQLWhere(where, "1"))
-	key := "model:" + m.table + ":where:get:" + Md5(fmt.Sprintf("%s%v", query, args))
+	key := "model:" + m.table + ":get:" + Md5(fmt.Sprintf("%s%v", query, args))
 	if ok, _ := m.rds.GetCache(key, &resp); ok {
 		if resp.Id == 0 {
 			return nil, nil
@@ -141,7 +139,7 @@ func (m *custom{{.upperStartCamelObject}}Model) GetListByWhereWithFields(fields,
 
 	var ret {{.upperStartCamelObject}}Resp
 	query := fmt.Sprintf("select %s from `%s` %s", fields, m.table, toSQLWhere(where, ""))
-	key := "model:" + m.table + ":where:list:" + Md5(fmt.Sprintf("%s%v", query, args))
+	key := "model:" + m.table + ":list:" + Md5(fmt.Sprintf("%s%v", query, args))
 	if ok, _ := m.rds.GetCache(key, &ret); ok {
 		return ret.Resp, ret.Count
 	}
@@ -194,7 +192,7 @@ func (m *custom{{.upperStartCamelObject}}Model) Insert(data *{{.upperStartCamelO
 	}
 
 	ret := m.c.Table(m.table).Create(data)
-	m.rds.DelCache("model:" + m.table + ":where:list:*")
+	m.rds.DelCache("model:" + m.table + ":list:*")
 	// return ret.RowsAffected, nil
 	return data.Id, ret.Error
 }
@@ -207,7 +205,7 @@ func (m *custom{{.upperStartCamelObject}}Model) Update(data *{{.upperStartCamelO
 		return ret.Error
 	}
 
-	// m.rds.DelCache(fmt.Sprintf(m.cacheKey, m.table, data.Id))
+	// m.rds.DelCache(fmt.Sprintf("model:%s:id:%d", m.table, data.Id))
 	m.rds.DelCache("model:" + m.table + ":*")
 
 	return nil
@@ -227,7 +225,7 @@ func (m *custom{{.upperStartCamelObject}}Model) UpdateByWhere(data map[string]an
 func (m *custom{{.upperStartCamelObject}}Model) Delete(ID int64) (int64, error) {
 	ts := time.Now().Unix()
 	ret := m.c.Exec("UPDATE `" + m.table + "` SET deleteTs=?,updateTs=? WHERE id=?", ts, ts, ID)
-	// m.rds.DelCache(fmt.Sprintf(m.cacheKey, m.table, ID))
+	// m.rds.DelCache(fmt.Sprintf("model:%s:id:%d", m.table, ID))
 	m.rds.DelCache("model:" + m.table + ":*")
 	return ret.RowsAffected, ret.Error
 }
