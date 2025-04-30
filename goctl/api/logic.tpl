@@ -9,14 +9,14 @@ type {{.logic}} struct {
 	logx.Logger
 	osType uint8
 	ctx    context.Context
-	user   *types.LoggedInUser
+	user   *utils.LoggedInUser
 	svcCtx *svc.ServiceContext
 }
 
 func New{{.logic}}(ctx context.Context, svcCtx *svc.ServiceContext) *{{.logic}} {
-	var u *types.LoggedInUser
+	var u *utils.LoggedInUser
 	if user := ctx.Value(utils.ContextType("user")); user != nil {
-		u = user.(*types.LoggedInUser)
+		u = user.(*utils.LoggedInUser)
 	}
 	return &{{.logic}}{
 		ctx:    ctx,
