@@ -1,8 +1,7 @@
 package {{.pkgName}}
 
 import (
-	{{.imports}}{{if eq .function "x"}}
-	"github.com/pywee/fangzhoucms/utils"{{end}}
+	{{.imports}}
 	"github.com/pywee/fangzhoucms/utils"
 )
 
