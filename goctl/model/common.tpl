@@ -1,8 +1,10 @@
 package model
 
 import (
+	"time"
 	"crypto/md5"
 	"fmt"
+	"context"
 	"reflect"
 	"strconv"
 	"strings"
@@ -16,8 +18,8 @@ import (
 type (
 	BaseModel interface {
 		Exec(string, ...any) error
-		QueryCache(string, string, ...any) (map[string]string, error)
-		QueryListCache(string, string, ...any) ([]map[string]string, error)
+		QueryCache(context.Context, string, string, ...any) (map[string]string, error)
+		QueryListCache(context.Context, string, string, ...any) ([]map[string]string, error)
 		Query(string, ...any) (map[string]string, error)
 		QueryList(string, ...any) ([]map[string]string, error)
 		QueryFieldList(string, ...any) ([]string, error)
@@ -45,29 +47,65 @@ func (b *customBaseModel) Exec(sql string, args ...any) error {
 	return err
 }
 
+func parseContext(ctx context.Context) *utils.LoggedInUser{
+	if user := ctx.Value(utils.ContextType("user")); user != nil {
+		return user.(*utils.LoggedInUser)
+	}
+	return &utils.LoggedInUser{SiteName: "null"}
+}
+
 // QueryCache 查询带缓存数据
-func (b *customBaseModel) QueryCache(key, ql string, args ...any) (map[string]string, error) {
+func (b *customBaseModel) QueryCache(ctx context.Context, key, ql string, args ...any) (map[string]string, error) {
 	var (
-		err    error
-		ckey   string
-		rdsCli = b.rds
-		ret    = make(map[string]string, 1)
+		err error
+		ret = make(map[string]string, 1)
 	)
 
-	if rdsCli != nil {
-		ckey = key + utils.Md5(ql + fmt.Sprintf("%v", args))
-		if ok, _ := rdsCli.GetCache(ckey, &ret); ok {
-			return ret, nil
-		}
+	pctx := parseContext(ctx)
+	ckey := fmt.Sprintf("model:site:%s:%s:%s", pctx.SiteName, key, utils.Md5(fmt.Sprintf("%s%v", ql, args)))
+	if ok, _ := b.rds.GetCache(ckey, &ret); ok {
+		return ret, nil
 	}
 
 	if ret, err = b.Query(ql, args...); err != nil {
 		return nil, err
 	}
 
-	if rdsCli != nil {
+	if pctx.DataCacheTTL > 0 {
+		b.rds.SetCache(ckey, ret, time.Duration(pctx.DataCacheTTL)*time.Second)
+	} else {
+		b.rds.SetCache(ckey, ret, b.rds.TimeOut)
+	}
+	return ret, nil
+}
+
+// QueryListCache 原生查询语句带缓存
+func (b *customBaseModel) QueryListCache(ctx context.Context, key, ql string, args ...any) ([]map[string]string, error) {
+	var (
+		err error
+		rdsCli = b.rds
+		ret = make([]map[string]string, 0)
+	)
+
+	pctx := parseContext(ctx)
+	ckey := fmt.Sprintf("model:site:%s:%s:%s", pctx.SiteName, key, utils.Md5(fmt.Sprintf("%s%v", ql, args)))
+	if ok, _ := rdsCli.GetCache(ckey, &ret); ok {
+		return ret, nil
+	}
+	if ok, _ := rdsCli.GetCache(ckey, &ret); ok {
+		return ret, nil
+	}
+
+	if ret, err = b.QueryList(ql, args...); err != nil {
+		return nil, err
+	}
+
+	if pctx.DataCacheTTL > 0 {
+		rdsCli.SetCache(ckey, ret, time.Duration(pctx.DataCacheTTL)*time.Second)
+	} else {
 		rdsCli.SetCache(ckey, ret, rdsCli.TimeOut)
 	}
+
 	return ret, nil
 }
 
@@ -101,32 +139,6 @@ func (b *customBaseModel) Query(ql string, args ...any) (map[string]string, erro
 		}
 	}
 
-	return ret, nil
-}
-
-// QueryListCache 原生查询语句带缓存
-func (b *customBaseModel) QueryListCache(key, ql string, args ...any) ([]map[string]string, error) {
-	var (
-		err    error
-		ckey   string
-		rdsCli = b.rds
-		ret    = make([]map[string]string, 1)
-	)
-
-	if rdsCli != nil {
-		ckey = key + utils.Md5(ql + fmt.Sprintf("%v", args))
-		if ok, _ := rdsCli.GetCache(ckey, &ret); ok {
-			return ret, nil
-		}
-	}
-
-	if ret, err = b.QueryList(ql, args...); err != nil {
-		return nil, err
-	}
-
-	if rdsCli != nil {
-		rdsCli.SetCache(ckey, ret, rdsCli.TimeOut)
-	}
 	return ret, nil
 }
 
@@ -240,24 +252,6 @@ func typeToString(v any) string {
 	return ""
 }
 
-// GetOffsetLimit 根据给出的参数获取分页数据
-func GetOffsetLimit(page, size int32) string {
-	if page <= 0 {
-		page = 1
-	}
-	if size <= 0 {
-		size = 10
-	}
-	return fmt.Sprintf(" LIMIT %d,%d", page*size-size, size)
-}
-
-// case2CamelS 下划线转驼峰
-// func case2CamelS(name string) string {
-	// name = strings.Replace(name, "_", " ", -1)
-	// name = strings.Title(name)
-	// return strings.Replace(name, " ", "", -1)
-// }
-
 // Name2Case 驼峰转下划线
 func Name2Case(str string) string {
 	m := make([]rune, 0, 10)
@@ -279,6 +273,17 @@ func IsWordEn(s rune) bool {
 
 func Md5(data string) string {
 	return fmt.Sprintf("%x", md5.Sum([]byte(data)))
+}
+
+// GetOffsetLimit 根据给出的参数获取分页数据
+func GetOffsetLimit(page, size int32) string {
+	if page <= 0 {
+		page = 1
+	}
+	if size <= 0 {
+		size = 10
+	}
+	return fmt.Sprintf(" LIMIT %d,%d", page*size-size, size)
 }
 
 // byte2Str []byte to string
