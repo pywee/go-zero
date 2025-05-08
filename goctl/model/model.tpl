@@ -79,7 +79,7 @@ func (m *custom{{.upperStartCamelObject}}Model) GetWithFields(ctx context.Contex
 	}
 
 	pctx := parseContext(ctx)
-	key := fmt.Sprintf("model:site:%s:%s:id:%d", pctx.SiteName, m.table, id)
+	key := fmt.Sprintf("model:site:%s:%s:id:%d", pctx.Domain, m.table, id)
 	if ok, _ := m.rds.GetCache(key, &resp); ok {
 		if resp.Id == 0 {
 			return nil, NotFoundRecord
@@ -115,7 +115,7 @@ func (m *custom{{.upperStartCamelObject}}Model) GetByWhereWithFields(ctx context
 	var resp {{.upperStartCamelObject}}
 	pctx := parseContext(ctx)
 	query := fmt.Sprintf("select %s from `%s` %s", fields, m.table, toSQLWhere(where, "1"))
-	key := fmt.Sprintf("model:site:%s:%s:get:%s", pctx.SiteName, m.table, Md5(fmt.Sprintf("%s%v", query, args)))
+	key := fmt.Sprintf("model:site:%s:%s:get:%s", pctx.Domain, m.table, Md5(fmt.Sprintf("%s%v", query, args)))
 	if ok, _ := m.rds.GetCache(key, &resp); ok {
 		if resp.Id == 0 {
 			return nil, nil
@@ -151,7 +151,7 @@ func (m *custom{{.upperStartCamelObject}}Model) GetListByWhereWithFields(ctx con
 	var ret {{.upperStartCamelObject}}Resp
 	pctx := parseContext(ctx)
 	query := fmt.Sprintf("select %s from `%s` %s", fields, m.table, toSQLWhere(where, ""))
-	key := fmt.Sprintf("model:site:%s:%s:list:%s", pctx.SiteName, m.table, Md5(fmt.Sprintf("%s%v", query, args)))
+	key := fmt.Sprintf("model:site:%s:%s:list:%s", pctx.Domain, m.table, Md5(fmt.Sprintf("%s%v", query, args)))
 	if ok, _ := m.rds.GetCache(key, &ret); ok {
 		return ret.Resp, ret.Count
 	}
@@ -188,7 +188,7 @@ func (m *custom{{.upperStartCamelObject}}Model) Insert(ctx context.Context, data
 
 	ret := m.c.Table(m.table).Create(data)
 
-	key := fmt.Sprintf("model:site:%s:%s:list:*", parseContext(ctx).SiteName, m.table)
+	key := fmt.Sprintf("model:site:%s:%s:list:*", parseContext(ctx).Domain, m.table)
 	m.rds.DelCache(key)
 
 	return data.Id, ret.Error
@@ -202,7 +202,7 @@ func (m *custom{{.upperStartCamelObject}}Model) Update(ctx context.Context, data
 		return ret.Error
 	}
 
-	key := fmt.Sprintf("model:site:%s:%s:*", parseContext(ctx).SiteName, m.table)
+	key := fmt.Sprintf("model:site:%s:%s:*", parseContext(ctx).Domain, m.table)
 	m.rds.DelCache(key)
 
 	return nil
@@ -215,7 +215,7 @@ func (m *custom{{.upperStartCamelObject}}Model) UpdateByWhere(ctx context.Contex
 	}
 	ret := m.c.Table(m.table).Where(where, args...).Updates(data)
 
-	key := fmt.Sprintf("model:site:%s:%s:*", parseContext(ctx).SiteName, m.table)
+	key := fmt.Sprintf("model:site:%s:%s:*", parseContext(ctx).Domain, m.table)
 	m.rds.DelCache(key)
 
 	return ret.RowsAffected, ret.Error
@@ -226,7 +226,7 @@ func (m *custom{{.upperStartCamelObject}}Model) Delete(ctx context.Context, ID i
 	ts := time.Now().Unix()
 	ret := m.c.Exec("UPDATE `" + m.table + "` SET deleteTs=?,updateTs=? WHERE id=?", ts, ts, ID)
 
-	key := fmt.Sprintf("model:site:%s:%s:*", parseContext(ctx).SiteName, m.table)
+	key := fmt.Sprintf("model:site:%s:%s:*", parseContext(ctx).Domain, m.table)
 	m.rds.DelCache(key)
 
 	return ret.RowsAffected, ret.Error
@@ -240,7 +240,7 @@ func (m *custom{{.upperStartCamelObject}}Model) DeleteByWhere(ctx context.Contex
 		"deleteTs": ts,
 	})
 
-	key := fmt.Sprintf("model:site:%s:%s:*", parseContext(ctx).SiteName, m.table)
+	key := fmt.Sprintf("model:site:%s:%s:*", parseContext(ctx).Domain, m.table)
 	m.rds.DelCache(key)
 
 	return ret.RowsAffected, ret.Error
@@ -249,7 +249,7 @@ func (m *custom{{.upperStartCamelObject}}Model) DeleteByWhere(ctx context.Contex
 // HardDelete 硬删除操作
 func (m *custom{{.upperStartCamelObject}}Model) HardDelete(ctx context.Context, ID int64) error {
 	ret := m.c.Exec("DELETE FROM `"+m.table+"` WHERE id=?", ID)
-	key := fmt.Sprintf("model:site:%s:%s:*", parseContext(ctx).SiteName, m.table)
+	key := fmt.Sprintf("model:site:%s:%s:*", parseContext(ctx).Domain, m.table)
 	m.rds.DelCache(key)
 	return ret.Error
 }

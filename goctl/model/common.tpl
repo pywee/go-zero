@@ -51,7 +51,10 @@ func parseContext(ctx context.Context) *utils.LoggedInUser{
 	if user := ctx.Value(utils.ContextType("user")); user != nil {
 		return user.(*utils.LoggedInUser)
 	}
-	return &utils.LoggedInUser{SiteName: "null"}
+	if domain := ctx.Value(utils.ContextType("domain")); domain != nil {
+		return &utils.LoggedInUser{Domain: domain.(string)}
+	}
+	return &utils.LoggedInUser{}
 }
 
 // QueryCache 查询带缓存数据
@@ -62,7 +65,7 @@ func (b *customBaseModel) QueryCache(ctx context.Context, key, ql string, args .
 	)
 
 	pctx := parseContext(ctx)
-	ckey := fmt.Sprintf("model:site:%s:%s:%s", pctx.SiteName, key, utils.Md5(fmt.Sprintf("%s%v", ql, args)))
+	ckey := fmt.Sprintf("model:site:%s:%s:%s", pctx.Domain, key, utils.Md5(fmt.Sprintf("%s%v", ql, args)))
 	if ok, _ := b.rds.GetCache(ckey, &ret); ok {
 		return ret, nil
 	}
@@ -82,13 +85,13 @@ func (b *customBaseModel) QueryCache(ctx context.Context, key, ql string, args .
 // QueryListCache 原生查询语句带缓存
 func (b *customBaseModel) QueryListCache(ctx context.Context, key, ql string, args ...any) ([]map[string]string, error) {
 	var (
-		err error
+		err    error
 		rdsCli = b.rds
-		ret = make([]map[string]string, 0)
+		ret    = make([]map[string]string, 0)
 	)
 
 	pctx := parseContext(ctx)
-	ckey := fmt.Sprintf("model:site:%s:%s:%s", pctx.SiteName, key, utils.Md5(fmt.Sprintf("%s%v", ql, args)))
+	ckey := fmt.Sprintf("model:site:%s:%s:%s", pctx.Domain, key, utils.Md5(fmt.Sprintf("%s%v", ql, args)))
 	if ok, _ := rdsCli.GetCache(ckey, &ret); ok {
 		return ret, nil
 	}
