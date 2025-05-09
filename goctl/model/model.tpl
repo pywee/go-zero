@@ -20,7 +20,9 @@ type (
 	{{.upperStartCamelObject}}Model interface {
 		Get(context.Context, int64) (*{{.upperStartCamelObject}}, error)
 		GetByWhere(context.Context, string, ...any) (*{{.upperStartCamelObject}}, error)
+		GetByWhereNoCache(context.Context, string, ...any) (*{{.upperStartCamelObject}}, error)
 		GetListByWhere(context.Context, string, ...any) ([]*{{.upperStartCamelObject}}, int64)
+		GetListByWhereNoCache(context.Context, string, ...any) ([]*{{.upperStartCamelObject}}, int64)
 		GetWithFields(context.Context, string, int64) (*{{.upperStartCamelObject}}, error)
 		GetByWhereWithFields(context.Context, string, string, ...any) (*{{.upperStartCamelObject}}, error)
 		GetListByWhereWithFields(context.Context, string, string, ...any) ([]*{{.upperStartCamelObject}}, int64)
@@ -68,6 +70,38 @@ func (m *custom{{.upperStartCamelObject}}Model) GetByWhere(ctx context.Context, 
 // GetListByWhere 根据条件获取多条记录
 func (m *custom{{.upperStartCamelObject}}Model) GetListByWhere(ctx context.Context, where string, args ...any) ([]*{{.upperStartCamelObject}}, int64) {
 	return m.GetListByWhereWithFields(ctx, "*", where, args...)
+}
+
+func (m *custom{{.upperStartCamelObject}}Model) GetListByWhereNoCache(ctx context.Context, where string, args ...any) ([]*{{.upperStartCamelObject}}, int64) {
+	var ret []*{{.upperStartCamelObject}}
+	query := fmt.Sprintf("select * from `%s` %s", m.table, toSQLWhere(where, ""))
+	if err := m.c.Raw(query, args...).Scan(&ret).Error; err != nil {
+		return nil, 0
+	}
+
+	// 此处会潜在 bug，因为如果查询语句比较复杂，可能会出错
+	if idx := strings.Index(where, "order by "); idx != -1 {
+		where = where[:idx]
+	} else if idx := strings.Index(where, "limit "); idx != -1 {
+		where = where[:idx]
+	}
+	count, _ := m.Count(where, args...)
+
+	return ret, count
+}
+
+// GetByWhere 根据条件获取一条记录
+func (m *custom{{.upperStartCamelObject}}Model) GetByWhereNoCache(ctx context.Context, where string, args ...any) (*{{.upperStartCamelObject}}, error) {
+	var resp {{.upperStartCamelObject}}
+	query := fmt.Sprintf("select * from `%s` %s", m.table, toSQLWhere(where, "1"))
+	if err := m.c.Raw(query, args...).Scan(&resp).Error; err != nil {
+		return nil, err
+	}
+	if resp.Id == 0 {
+		return nil, nil
+	}
+
+	return &resp, nil
 }
 
 // Get 根据 ID 获取一条记录
