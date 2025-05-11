@@ -26,6 +26,16 @@ func (c *RedisClientModel) HGetINT(key, field string) (int64, error) {
 	return ret, nil
 }
 
+// HIncrBy 哈希自增
+func (c *RedisClientModel) HIncrBy(key, field string, i int64) (int64, error) {
+	r := c.rdsCli.HIncrBy(c.ctx, key, field, i)
+	ret, err := r.Result()
+	if c.IsRedisNotNil(err) {
+		return 0, err
+	}
+	return ret, nil
+}
+
 // HMSet 同时将多个 field-value (域-值)对设置到哈希表 key 中
 func (c *RedisClientModel) HMSet(key, field string, value interface{}) bool {
 	return c.rdsCli.HMSet(c.ctx, key, field, value).Val()
@@ -47,7 +57,7 @@ func (c *RedisClientModel) HExists(key, field string) bool {
 }
 
 // HGetAll 获取在哈希表中指定 key 的所有字段和值
-func (c *RedisClientModel) HGetAll(key, field string) map[string]string {
+func (c *RedisClientModel) HGetAll(key string) map[string]string {
 	return c.rdsCli.HGetAll(c.ctx, key).Val()
 }
 
