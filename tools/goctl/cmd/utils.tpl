@@ -14,6 +14,30 @@ import (
 
 type ContextType string
 
+type LoggedInUser struct {
+	Token        string `json:"token"`                  // Token 用户登录态
+	Id           int64  `json:"id"`                     // 主键
+	Wid          int64  `json:"wid"`                    // 登录中的站点 ID
+	Domain       string `json:"domain"`                 // 登录中的站点域名
+	Index        string `json:"index"`                  // 登录中的站点首页 (不包含 sign 标识)
+	SiteName     string `json:"siteName"`               // 登录中的站点名称
+	TplName      string `json:"tplName"`                // TplName 网站模板名称
+	Name         string `json:"name"`                   // 用户名
+	Type         int8   `json:"type,omitempty"`         // 类型 [1.管理员(全局超级管理员); 10.超级管理员(B端); 20.前台普通用户]
+	Gender       int8   `json:"gender,omitempty"`       // 性别 [0.未知; 1.男; 2.女]
+	Birthday     int32  `json:"birthday,omitempty"`     // 生日
+	Email        string `json:"email"`                  // email
+	Phone        string `json:"phone,omitempty"`        // 手机号
+	Role         int8   `json:"role,omitempty"`         // 角色 [1.超级管理员; 10.普通管理员; 20.普通用户]
+	Avatar       string `json:"avatar,omitempty"`       // 缩略图
+	MaxWebs      int8   `json:"maxWebs,omitempty"`      // 用户最多可拥有的站点数量
+	ClientIP     string `json:"clientIP,omitempty"`     // 客户端 IP 地址
+	DataCacheTTL int64  `json:"dataCacheTTL,omitempty"` // 数据缓存时间（秒）
+	HtmlCacheTTL int64  `json:"htmlCacheTTL,omitempty"` // 页面(静态)缓存时间（秒）
+	CreateTs     int64  `json:"createTs"`               // 创建时间
+	UpdateTs     int64  `json:"updateTs"`               // 修改时间
+}
+
 // UserModel 此处用于保存用户登录态
 type UserModel struct {
 	ID       int64  `json:"id"`
@@ -183,4 +207,22 @@ func InArray(arr []string, str string) bool {
 		}
 	}
 	return false
+}
+
+// GetOffsetLimit 根据给出的参数获取分页数据
+func GetOffsetLimit(page, size int32) string {
+	if page <= 0 {
+		page = 1
+	}
+	if size <= 0 {
+		size = 10
+	}
+	return fmt.Sprintf(" LIMIT %d,%d", page*size-size, size)
+}
+
+// VerifyEmail 验证邮箱格式是否正确
+func VerifyEmail(email string) bool {
+	regex := `^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$`
+	re := regexp.MustCompile(regex)
+	return re.MatchString(email)
 }
