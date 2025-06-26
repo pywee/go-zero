@@ -25,6 +25,7 @@ type (
 		GetListByWhereNoCache(context.Context, string, ...any) ([]*{{.upperStartCamelObject}}, int64)
 		GetWithFields(context.Context, string, int64) (*{{.upperStartCamelObject}}, error)
 		GetByWhereWithFields(context.Context, string, string, ...any) (*{{.upperStartCamelObject}}, error)
+		GetByWhereWithFieldsNoCache(string, string, ...any) (*{{.upperStartCamelObject}}, error)
 		GetListByWhereWithFields(context.Context, string, string, ...any) ([]*{{.upperStartCamelObject}}, int64)
 		Insert(context.Context, *{{.upperStartCamelObject}}) (int64, error)
 		Delete(context.Context, int64) (int64, error)
@@ -104,7 +105,7 @@ func (m *custom{{.upperStartCamelObject}}Model) GetByWhereNoCache(ctx context.Co
 	return &resp, nil
 }
 
-// Get 根据 ID 获取一条记录
+// GetWithFields 根据 ID 获取一条记录
 // 可选要获取的字段
 func (m *custom{{.upperStartCamelObject}}Model) GetWithFields(ctx context.Context, fields string, id int64) (*{{.upperStartCamelObject}}, error) {
 	var resp {{.upperStartCamelObject}}
@@ -135,6 +136,24 @@ func (m *custom{{.upperStartCamelObject}}Model) GetWithFields(ctx context.Contex
 		m.rds.SetCache(key, resp, time.Duration(pctx.DataCacheTTL)*time.Second)
 	} else {
 		m.rds.SetCache(key, resp, m.rds.TimeOut)
+	}
+	return &resp, nil
+}
+
+// GetByWhereWithFieldsNoCache
+func (m *custom{{.upperStartCamelObject}}Model) GetByWhereWithFieldsNoCache(fields, where string, args ...any) (*{{.upperStartCamelObject}}, error) {
+	if fields == "" {
+		fields = "*"
+	}
+
+	var resp IncrId
+	query := fmt.Sprintf("select %s from `%s` %s", fields, m.table, toSQLWhere(where, "1"))
+	if err := m.c.Raw(query, args...).Scan(&resp).Error; err != nil {
+		return nil, err
+	}
+
+	if resp.Id == 0 {
+		return nil, nil
 	}
 	return &resp, nil
 }
