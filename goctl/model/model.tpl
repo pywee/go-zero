@@ -146,7 +146,7 @@ func (m *custom{{.upperStartCamelObject}}Model) GetByWhereWithFieldsNoCache(fiel
 		fields = "*"
 	}
 
-	var resp IncrId
+	var resp {{.upperStartCamelObject}}
 	query := fmt.Sprintf("select %s from `%s` %s", fields, m.table, toSQLWhere(where, "1"))
 	if err := m.c.Raw(query, args...).Scan(&resp).Error; err != nil {
 		return nil, err
