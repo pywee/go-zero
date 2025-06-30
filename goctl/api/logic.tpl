@@ -2,7 +2,7 @@ package {{.pkgName}}
 
 import (
 	{{.imports}}
-	"github.com/pywee/fangzhoucms/utils"
+	"github.com/pywee/{{.path}}/utils"
 )
 
 type {{.logic}} struct {

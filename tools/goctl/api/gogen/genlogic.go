@@ -3,7 +3,9 @@ package gogen
 import (
 	_ "embed"
 	"fmt"
+	"os"
 	"path"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -57,6 +59,12 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 	pkgName := subDir[strings.LastIndex(subDir, "/")+1:]
 	serviceName := getServiceName(pkgName)
 
+	dirs, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	folderName := filepath.Base(dirs)
+
 	return genFile(fileGenConfig{
 		dir:             dir,
 		subdir:          subDir,
@@ -71,6 +79,7 @@ func genLogicByRoute(dir, rootPkg string, cfg *config.Config, group spec.Group, 
 			"serviceName":      serviceName,
 			"pkgName":          pkgName,
 			"imports":          imports,
+			"path":             folderName,
 			"logic":            strings.Title(logic),
 			"function":         strings.Title(strings.TrimSuffix(logic, "Logic")),
 			"responseType":     responseString,
