@@ -6,7 +6,7 @@ import (
 	"time"
 	"strings"
 	"gorm.io/gorm"
-	rCache "github.com/pywee/fangzhoucms/cache"
+	rCache "github.com/pywee/{{.path}}/cache"
 	// "github.com/zeromicro/go-zero/core/stores/cache"
 )
 {{else}}

@@ -399,12 +399,19 @@ func (g *defaultGenerator) genModelCustom(in parser.Table, withCache bool) (stri
 		workName = ""
 	}
 
+	dir, err := os.Getwd()
+	if err != nil {
+		panic(err)
+	}
+	folderName := filepath.Base(dir)
+
 	t := util.With("model-custom").
 		Parse(text).
 		GoFmt(true)
 	output, err := t.Execute(map[string]any{
 		"pkg":                   g.pkg,
 		"withCache":             withCache,
+		"path":                  folderName,
 		"tableNameStr":          in.Name.ToCamel(),
 		"tableNameLower":        FirstLower(in.Name.ToCamel()),
 		"upperStartCamelObject": in.Name.ToCamel(),
