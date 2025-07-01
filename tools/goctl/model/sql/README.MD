@@ -359,7 +359,7 @@ OPTIONS:
 | mediumint      | int64           | sql.NullInt64                          |
 | int            | int64           | sql.NullInt64                          |
 | integer        | int64           | sql.NullInt64                          |
-| bigint         | int64           | sql.NullInt64                          |
+| bigint         | uint64           | sql.NullInt64                          |
 | float          | float64         | sql.NullFloat64                        |
 | double         | float64         | sql.NullFloat64                        |
 | decimal        | float64         | sql.NullFloat64                        |
