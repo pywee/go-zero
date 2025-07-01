@@ -21,7 +21,7 @@ func JSON(w http.ResponseWriter, ret any, err error) {
 		if errStr := err.Error(); !strings.Contains(errStr, `code":`) {
 			bs, _ = json.Marshal(Resp{Code: -1, Msg: errStr})
 		} else {
-			bs, _ = json.Marshal(err)
+			bs = []byte(errStr)
 		}
 	} else {
 		bs, _ = json.Marshal(Resp{Data: ret})
