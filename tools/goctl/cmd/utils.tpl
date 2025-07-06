@@ -226,3 +226,36 @@ func VerifyEmail(email string) bool {
 	re := regexp.MustCompile(regex)
 	return re.MatchString(email)
 }
+
+func MaskEmail(email string) string {
+	parts := strings.Split(email, "@")
+	if len(parts) != 2 {
+		return email // 非法邮箱格式，直接返回原文
+	}
+
+	local := parts[0]
+	domain := parts[1]
+
+	// 保留前1后1，其余用 * 替代
+	if len(local) <= 2 {
+		return local[:1] + "*" + "@" + domain
+	}
+
+	masked := local[:1] + strings.Repeat("*", len(local)-2) + local[len(local)-1:]
+	return masked + "@" + domain
+}
+
+func MaskUsername(name string) string {
+	n := len(name)
+	switch {
+	case n == 0:
+		return ""
+	case n == 1:
+		return "*"
+	case n == 2:
+		return name[:1] + "*"
+	default:
+		return name[:1] + strings.Repeat("*", n-2) + name[n-1:]
+	}
+}
+
