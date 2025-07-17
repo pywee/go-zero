@@ -343,18 +343,17 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 
 	s := `type ` + case2CamelS(table.Name.ToCamel()) + ` struct {
 `
-	fmt.Println(s, ":::")
 	for _, v := range table.Fields {
 		if v.Comment != "" {
 			v.Comment = "// " + v.Comment
 		}
 
-		// fmt.Println(v, v.DataType, v.NameOriginal)
+		fmt.Println(",,,,,,,,,,,,,,,", v, v.DataType, v.NameOriginal)
 
 		columnName := case2CamelS(v.NameOriginal)
 		if clen := len(columnName); clen >= 2 {
 			lastFix := strings.ToLower(columnName[clen-2:])
-			if v.DataType != "string" && (lastFix == "id" || lastFix == "ts") {
+			if v.DataType != "float64" && v.DataType != "string" && (lastFix == "id" || lastFix == "ts") {
 				v.DataType = "int64"
 			}
 		}

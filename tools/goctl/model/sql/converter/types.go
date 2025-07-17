@@ -30,7 +30,7 @@ var commonMysqlDataTypeMapInt = map[int]string{
 	parser.Int4:      "int64",
 	parser.Int8:      "int64",
 	parser.Integer:   "int64",
-	parser.BigInt:    "int64",
+	parser.BigInt:    "uint64",
 	parser.Float:     "float64",
 	parser.Float4:    "float64",
 	parser.Float8:    "float64",
