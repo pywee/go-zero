@@ -34,6 +34,7 @@ func GetThisMonthTime(m time.Month) time.Time {
 // 加载 Asia/Shanghai 时区（更标准，支持夏令时等）
 // 要求 dateStr 格式为 "2006-01-02"
 func GetZeroTs(dateStr string) int64 {
+	dateStr = strings.ReplaceAll(dateStr, "/", "-")
 	layout := "2006-01-02"
 	loc, err := time.LoadLocation("Asia/Shanghai")
 	if err != nil {
