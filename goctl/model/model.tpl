@@ -128,7 +128,7 @@ func (m *custom{{.upperStartCamelObject}}Model) GetWithFields(ctx context.Contex
 	}
 
 	if resp.Id == 0 {
-		m.rds.SetCache(key, resp, time.Minute)
+		m.rds.SetCache(key, resp, time.Second*2)
 		return nil, NotFoundRecord
 	}
 
@@ -181,7 +181,7 @@ func (m *custom{{.upperStartCamelObject}}Model) GetByWhereWithFields(ctx context
 	}
 
 	if resp.Id == 0 {
-		m.rds.SetCache(key, resp, time.Minute)
+		m.rds.SetCache(key, resp, time.Second*2)
 		return nil, nil
 	}
 
