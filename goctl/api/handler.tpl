@@ -1,7 +1,9 @@
 package {{.PkgName}}
 
 import (
+	"context"
 	"net/http"
+	"strings"
 	{{.ImportPackages}}
 	// "github.com/pywee/{{.ServiceName}}/common"
 	"github.com/pywee/{{.ServiceName}}/utils"
@@ -22,7 +24,8 @@ func {{.HandlerName}}(svcCtx *svc.ServiceContext) http.HandlerFunc {
 			return
 		}
 
-		l := {{.LogicName}}.New{{.LogicType}}(r.Context(), svcCtx)
+		ctx := context.WithValue(r.Context(), utils.CtxDomain, strings.ToLower(r.Host))
+		l := {{.LogicName}}.New{{.LogicType}}(ctx, svcCtx)
 		{{if .HasResp}}resp, {{end}}err := l.{{.Call}}({{if .HasRequest}}&req{{end}})
 		utils.JSON(w, resp, err){{if .HasResp}}{{end}}	
 	}
