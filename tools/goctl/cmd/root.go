@@ -42,6 +42,8 @@ var (
 	usageTpl string
 	//go:embed utils.tpl
 	utilsTpl string
+	//go:embed utilsHttp.tpl
+	utilsHttpTpl string
 	//go:embed utilsRand.tpl
 	utilsRandTpl string
 	//go:embed utilsTime.tpl
@@ -164,6 +166,7 @@ func createUtilFile() error {
 		"/utils.go": utilsTpl,
 		"/time.go":  utilsTimeTpl,
 		"/rand.go":  utilsRandTpl,
+		"/http.go":  utilsHttpTpl,
 		"/resp.go":  respTpl,
 		"/str.go":   strsTpl,
 	}
