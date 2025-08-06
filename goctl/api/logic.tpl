@@ -15,7 +15,7 @@ type {{.logic}} struct {
 
 func New{{.logic}}(ctx context.Context, svcCtx *svc.ServiceContext) *{{.logic}} {
 	var u *utils.LoggedInUser
-	if user := ctx.Value(utils.ContextType("user")); user != nil {
+	if user := ctx.Value(utils.CtxUser); user != nil {
 		u = user.(*utils.LoggedInUser)
 	}
 	return &{{.logic}}{
