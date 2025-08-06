@@ -1,6 +1,7 @@
 package mysqlModel
 
 import (
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -186,3 +187,15 @@ func IsWordEn(s rune) bool {
 // }
 // return nil
 // }
+
+// GetOffsetLimit 根据给出的参数获取分页数据
+func GetOffsetLimit(page, size int) string {
+	if page <= 0 {
+		page = 1
+	}
+	if size <= 0 {
+		size = 10
+	}
+	return fmt.Sprintf(" LIMIT %d,%d", page*size-size, size)
+}
+

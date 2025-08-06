@@ -166,12 +166,22 @@ func (g *defaultGenerator) createFile(modelList map[string]*codeTuple) error {
 		return err
 	}
 
-	name, _ := pathx.GetDefaultGoctlHome()
-	commonSQL := name + "/" + version.BuildVersion + "/model/common.tpl"
-	bs, err := os.ReadFile(commonSQL)
-	if err == nil && len(bs) > 0 {
-		if err = os.WriteFile(dirAbs+"/common.go", bs, os.ModePerm); err != nil {
-			return err
+	commonGoFile := dirAbs + "/common.go"
+	if _, err := os.Stat(commonGoFile); os.IsNotExist(err) {
+		name, _ := pathx.GetDefaultGoctlHome()
+		commonSQL := name + "/" + version.BuildVersion + "/model/common.tpl"
+
+		bs, err := os.ReadFile(commonSQL)
+		if err == nil && len(bs) > 0 {
+			f, err := os.OpenFile(commonGoFile, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+			if err != nil {
+				return err
+			}
+			defer f.Close()
+
+			if _, err = f.Write(bs); err != nil {
+				return err
+			}
 		}
 	}
 
