@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 // RemoveHTMLStyle 去掉HTML样式代码
@@ -59,4 +60,30 @@ func ToString(src any) (string, error) {
 		return strconv.FormatFloat(src.(float64), 'f', -1, 64), nil
 	}
 	return "", errors.New("unsupported type")
+}
+
+// Uncapitalize 字符串首字母小写
+func Uncapitalize(s string) string {
+	if s == "" {
+		return s
+	}
+	runes := []rune(s)
+	runes[0] = unicode.ToLower(runes[0])
+	return string(runes)
+}
+
+// Capitalize 将字符串首字母大写
+func Capitalize(s string) string {
+	if s == "" {
+		return s
+	}
+	runes := []rune(s)
+	runes[0] = unicode.ToUpper(runes[0])
+	return string(runes)
+}
+
+// RemoveUnsupportedChars 匹配所有 4 字节 UTF-8 字符（emoji 等）
+func RemoveUnsupportedChars(s string) string {
+	re := regexp.MustCompile(`[\x{10000}-\x{10FFFF}]`)
+	return re.ReplaceAllString(s, "")
 }
