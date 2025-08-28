@@ -358,7 +358,7 @@ func (g *defaultGenerator) genModel(in parser.Table, withCache bool) (string, er
 			v.Comment = "// " + v.Comment
 		}
 
-		fmt.Println(",,,,,,,,,,,,,,,", v, v.DataType, v.NameOriginal)
+		fmt.Println(v, v.DataType, v.NameOriginal)
 
 		columnName := case2CamelS(v.NameOriginal)
 		if clen := len(columnName); clen >= 2 {
