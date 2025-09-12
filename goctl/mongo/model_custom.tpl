@@ -108,10 +108,7 @@ func (m *custom{{.Type}}Model) Update{{.Type}}(ctx context.Context, data *{{.Typ
 	if err != nil {
 		return err
 	}
-	if _, err = m.Update(ctx, ret); err != nil {
-		return err
-	}
-	return nil
+	return m.Update(ctx, ret)
 }
 
 // Update{{.Type}}ByWhere 根据条件更新多个 {{.Type}}
