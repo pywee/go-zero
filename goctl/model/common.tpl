@@ -31,11 +31,10 @@ type (
 	}
 )
 
-func NewBaseModel(table string, conn *gorm.DB, rds *rCache.RedisClientModel, opts ...cache.Option) BaseModel {
+func NewBaseModel(conn *gorm.DB, rds *rCache.RedisClientModel, opts ...cache.Option) BaseModel {
 	return &customBaseModel{
 		rds:   rds,
 		c:     conn,
-		table: table,
 	}
 }
 
@@ -210,7 +209,7 @@ func (b *customBaseModel) QueryFieldList(ql string, args ...any) ([]string, erro
 }
 
 // UpdateByWhere 根据条件批量更新
-func (m *customKeywordsModel) UpdateByWhere(ctx context.Context, data map[string]any, where string, args ...any) (int64, error) {
+func (m *customBaseModel) UpdateByWhere(ctx context.Context, data map[string]any, where string, args ...any) (int64, error) {
 	if m.table == "" {
 		return 0, fmt.Errorf("table name is empty")
 	}
@@ -247,7 +246,7 @@ func (m *customBaseModel) DeleteByWhere(ctx context.Context, where string, args 
 // CountByWhere 根据条件统计多条记录
 func (m *customBaseModel) Sum(sumField, where string, args ...any) int64 {
 	if m.table == "" {
-		return 0, fmt.Errorf("table name is empty")
+		return -1
 	}
 
 	var resp struct {

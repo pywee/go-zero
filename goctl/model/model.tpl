@@ -14,8 +14,10 @@ import "github.com/zeromicro/go-zero/core/stores/sqlx"
 {{end}}
 var _ {{.upperStartCamelObject}}Model = (*custom{{.upperStartCamelObject}}Model)(nil)
 
-// 2024.04.18 修改
-// 2024.05.14 修改 
+// 修改记录
+// 2024.04.18 
+// 2024.05.14
+// 2025.09.20
 type (
 	{{.upperStartCamelObject}}Model interface {
 		Get(context.Context, int64) (*{{.upperStartCamelObject}}, error)
