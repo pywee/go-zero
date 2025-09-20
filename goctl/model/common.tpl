@@ -1,13 +1,13 @@
 package model
 
 import (
-	"time"
+	"context"
 	"crypto/md5"
 	"fmt"
-	"context"
 	"reflect"
 	"strconv"
 	"strings"
+	"time"
 
 	rCache "github.com/pywee/fangzhoucms/cache"
 	"github.com/pywee/fangzhoucms/utils"
@@ -25,16 +25,28 @@ type (
 		QueryFieldList(string, ...any) ([]string, error)
 	}
 	customBaseModel struct {
-		c   *gorm.DB
-		rds *rCache.RedisClientModel
+		table string
+		c     *gorm.DB
+		rds   *rCache.RedisClientModel
 	}
 )
 
-func NewBaseModel(conn *gorm.DB,rds *rCache.RedisClientModel, opts ...cache.Option) BaseModel {
+func NewBaseModel(table string, conn *gorm.DB, rds *rCache.RedisClientModel, opts ...cache.Option) BaseModel {
 	return &customBaseModel{
-		rds: rds,
-		c:   conn,
+		rds:   rds,
+		c:     conn,
+		table: table,
 	}
+}
+
+func parseContext(ctx context.Context) *utils.LoggedInUser {
+	if user := ctx.Value(utils.CtxUser); user != nil {
+		return user.(*utils.LoggedInUser)
+	}
+	if domain := ctx.Value(utils.CtxDomain); domain != nil {
+		return &utils.LoggedInUser{Domain: domain.(string)}
+	}
+	return &utils.LoggedInUser{}
 }
 
 // Exec 原生执行语句
@@ -45,16 +57,6 @@ func (b *customBaseModel) Exec(sql string, args ...any) error {
 	}
 	_, err = db.Exec(sql, args...)
 	return err
-}
-
-func parseContext(ctx context.Context) *utils.LoggedInUser{
-	if user := ctx.Value(utils.ContextType("user")); user != nil {
-		return user.(*utils.LoggedInUser)
-	}
-	if domain := ctx.Value(utils.ContextType("domain")); domain != nil {
-		return &utils.LoggedInUser{Domain: domain.(string)}
-	}
-	return &utils.LoggedInUser{}
 }
 
 // QueryCache 查询带缓存数据
@@ -207,6 +209,100 @@ func (b *customBaseModel) QueryFieldList(ql string, args ...any) ([]string, erro
 	return list, nil
 }
 
+// UpdateByWhere 根据条件批量更新
+func (m *customKeywordsModel) UpdateByWhere(ctx context.Context, data map[string]any, where string, args ...any) (int64, error) {
+	if m.table == "" {
+		return 0, fmt.Errorf("table name is empty")
+	}
+
+	if _, ok := data["updateTs"]; !ok {
+		data["updateTs"] = time.Now().Unix()
+	}
+	ret := m.c.Table(m.table).Where(where, args...).Updates(data)
+
+	key := fmt.Sprintf("model:site:%s:%s:*", parseContext(ctx).Domain, m.table)
+	m.rds.DelCache(key)
+
+	return ret.RowsAffected, ret.Error
+}
+
+// DeleteByWhere 根据条件批量删除
+func (m *customBaseModel) DeleteByWhere(ctx context.Context, where string, args ...any) (int64, error) {
+	if m.table == "" {
+		return 0, fmt.Errorf("table name is empty")
+	}
+
+	ts := time.Now().Unix()
+	ret := m.c.Table(m.table).Where(where, args...).Updates(map[string]any{
+		"updateTs": ts,
+		"deleteTs": ts,
+	})
+
+	key := fmt.Sprintf("model:site:%s:%s:*", parseContext(ctx).Domain, m.table)
+	m.rds.DelCache(key)
+
+	return ret.RowsAffected, ret.Error
+}
+
+// CountByWhere 根据条件统计多条记录
+func (m *customBaseModel) Sum(sumField, where string, args ...any) (int64, error) {
+	if m.table == "" {
+		return 0, fmt.Errorf("table name is empty")
+	}
+
+	var resp struct {
+		S int64 `gorm:"column:s" json:"s"`
+	}
+
+	query := fmt.Sprintf("select sum(%s) s from `%s` %s", sumField, m.table, toSQLWhere(where, ""))
+	err := m.c.Raw(query, args...).Scan(&resp).Error
+	return resp.S, err
+}
+
+// CountByWhere 根据条件计数
+func (m *customBaseModel) Count(where string, args ...any) int64 {
+	if m.table == "" {
+		return -1
+	}
+
+	var resp struct {
+		C int64 `gorm:"column:c" json:"c"`
+	}
+
+	query := fmt.Sprintf("select count(*) c from `%s` %s", m.table, toSQLWhere(where, ""))
+	if err := m.c.Raw(query, args...).Scan(&resp).Error; err != nil {
+		return -1
+	}
+
+	return resp.C
+}
+
+// HardDelete 硬删除操作
+func (m *customBaseModel) HardDelete(ctx context.Context, ID int64) error {
+	if m.table == "" {
+		return fmt.Errorf("table name is empty")
+	}
+
+	ret := m.c.Exec("DELETE FROM `"+m.table+"` WHERE id=?", ID)
+	key := fmt.Sprintf("model:site:%s:%s:*", parseContext(ctx).Domain, m.table)
+	m.rds.DelCache(key)
+	return ret.Error
+}
+
+// Delete 根据 ID 删除记录
+func (m *customBaseModel) Delete(ctx context.Context, ID int64) (int64, error) {
+	if m.table == "" {
+		return 0, fmt.Errorf("table name is empty")
+	}
+	ts := time.Now().Unix()
+	ret := m.c.Exec("UPDATE `"+m.table+"` SET deleteTs=?,updateTs=? WHERE id=?", ts, ts, ID)
+
+	key := fmt.Sprintf("model:site:%s:%s:*", parseContext(ctx).Domain, m.table)
+	m.rds.DelCache(key)
+
+	return ret.RowsAffected, ret.Error
+}
+
 // toSQLWhere 转换为内部标准 WHERE 条件语句
 // 如果 limit 为空则表示不限制
 func toSQLWhere(where, limit string) string {
@@ -255,25 +351,6 @@ func typeToString(v any) string {
 	return ""
 }
 
-// Name2Case 驼峰转下划线
-func Name2Case(str string) string {
-	m := make([]rune, 0, 10)
-	for k, v := range str {
-		if k == 0 && IsWordEn(v) {
-			v += 32
-		} else if IsWordEn(v) {
-			m = append(m, '_')
-			v += 32
-		}
-		m = append(m, v)
-	}
-	return string(m)
-}
-
-func IsWordEn(s rune) bool {
-	return s >= 65 && s <= 90
-}
-
 func Md5(data string) string {
 	return fmt.Sprintf("%x", md5.Sum([]byte(data)))
 }
@@ -288,16 +365,3 @@ func GetOffsetLimit(page, size int32) string {
 	}
 	return fmt.Sprintf(" LIMIT %d,%d", page*size-size, size)
 }
-
-// byte2Str []byte to string
-//func byte2Str(b []byte) string {
-//return *(*string)(unsafe.Pointer(&b))
-//}
-
-// // Exec 原生执行语句
-// func Exec(sql string, args ...any) error {
-// if err := c.Exec(sql, args...).Error; err != nil {
-// return err
-// }
-// return nil
-// }

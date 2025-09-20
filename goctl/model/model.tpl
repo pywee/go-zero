@@ -33,14 +33,12 @@ type (
 		DeleteByWhere(context.Context, string, ...any) (int64, error)
 		Update(context.Context, *{{.upperStartCamelObject}}) error
 		UpdateByWhere(context.Context, map[string]any, string, ...any) (int64, error)
-		Count(string, ...any) (int64, error)
+		Count(string, ...any) int64
 		Sum(string, string, ...any) (int64, error)
 	}
 
 	custom{{.upperStartCamelObject}}Model struct {
-		table string
-		c *gorm.DB
-		rds *rCache.RedisClientModel
+		*customBaseModel
 	}
 
 	{{.upperStartCamelObject}}Resp struct {
@@ -52,9 +50,11 @@ type (
 // New{{.upperStartCamelObject}}Model returns a model for the database table.
 func New{{.upperStartCamelObject}}Model(conn *gorm.DB{{if .withCache}}, rds *rCache.RedisClientModel{{end}}) {{.upperStartCamelObject}}Model {
 	return &custom{{.upperStartCamelObject}}Model{
-		c: conn,
-		rds: rds,
-		table: "{{.lowerStartCamelObject}}",
+		customBaseModel: &customBaseModel{
+			c:     conn,
+			rds:   rds,
+			table: "{{.lowerStartCamelObject}}",
+		},
 	}
 }
 
@@ -86,9 +86,8 @@ func (m *custom{{.upperStartCamelObject}}Model) GetListByWhereNoCache(ctx contex
 	} else if idx := strings.Index(where, "limit "); idx != -1 {
 		where = where[:idx]
 	}
-	count, _ := m.Count(where, args...)
 
-	return ret, count
+	return ret, m.Count(where, args...)
 }
 
 // GetByWhere 根据条件获取一条记录
@@ -219,7 +218,7 @@ func (m *custom{{.upperStartCamelObject}}Model) GetListByWhereWithFields(ctx con
 	} else if idx := strings.Index(where, "limit "); idx != -1 {
 		where = where[:idx]
 	}
-	ret.Count, _ = m.Count(where, args...)
+	ret.Count = m.Count(where, args...)
 
 	if pctx.DataCacheTTL > 0 {
 		m.rds.SetCache(key, ret, time.Duration(pctx.DataCacheTTL)*time.Second)
@@ -259,72 +258,4 @@ func (m *custom{{.upperStartCamelObject}}Model) Update(ctx context.Context, data
 	m.rds.DelCache(key)
 
 	return nil
-}
-
-// UpdateByWhere 根据条件批量更新
-func (m *custom{{.upperStartCamelObject}}Model) UpdateByWhere(ctx context.Context, data map[string]any, where string, args ...any) (int64, error) {
-	if _, ok := data["updateTs"]; !ok {
-		data["updateTs"] = time.Now().Unix()
-	}
-	ret := m.c.Table(m.table).Where(where, args...).Updates(data)
-
-	key := fmt.Sprintf("model:site:%s:%s:*", parseContext(ctx).Domain, m.table)
-	m.rds.DelCache(key)
-
-	return ret.RowsAffected, ret.Error
-}
-
-// Delete 根据 ID 删除记录
-func (m *custom{{.upperStartCamelObject}}Model) Delete(ctx context.Context, ID int64) (int64, error) {
-	ts := time.Now().Unix()
-	ret := m.c.Exec("UPDATE `" + m.table + "` SET deleteTs=?,updateTs=? WHERE id=?", ts, ts, ID)
-
-	key := fmt.Sprintf("model:site:%s:%s:*", parseContext(ctx).Domain, m.table)
-	m.rds.DelCache(key)
-
-	return ret.RowsAffected, ret.Error
-}
-
-// DeleteByWhere 根据条件批量删除
-func (m *custom{{.upperStartCamelObject}}Model) DeleteByWhere(ctx context.Context, where string, args ...any) (int64, error) {
-	ts := time.Now().Unix()
-	ret := m.c.Table(m.table).Where(where, args...).Updates(map[string]any{
-		"updateTs": ts,
-		"deleteTs": ts,
-	})
-
-	key := fmt.Sprintf("model:site:%s:%s:*", parseContext(ctx).Domain, m.table)
-	m.rds.DelCache(key)
-
-	return ret.RowsAffected, ret.Error
-}
-
-// HardDelete 硬删除操作
-func (m *custom{{.upperStartCamelObject}}Model) HardDelete(ctx context.Context, ID int64) error {
-	ret := m.c.Exec("DELETE FROM `"+m.table+"` WHERE id=?", ID)
-	key := fmt.Sprintf("model:site:%s:%s:*", parseContext(ctx).Domain, m.table)
-	m.rds.DelCache(key)
-	return ret.Error
-}
-
-// CountByWhere 根据条件计数
-func (m *custom{{.upperStartCamelObject}}Model) Count(where string, args ...any) (int64, error) {
-	var resp struct {
-		C int64 `gorm:"column:c" json:"c"`
-	}
-
-	query := fmt.Sprintf("select count(*) c from `%s` %s", m.table, toSQLWhere(where, ""))
-	err := m.c.Raw(query, args...).Scan(&resp).Error
-	return resp.C, err
-}
-
-// CountByWhere 根据条件统计多条记录
-func (m *custom{{.upperStartCamelObject}}Model) Sum(sumField, where string, args ...any) (int64, error) {
-	var resp struct {
-		S int64 `gorm:"column:s" json:"s"`
-	}
-
-	query := fmt.Sprintf("select sum(%s) s from `%s` %s", sumField, m.table, toSQLWhere(where, ""))
-	err := m.c.Raw(query, args...).Scan(&resp).Error
-	return resp.S, err
 }

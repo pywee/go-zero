@@ -36,8 +36,8 @@ const (
 )
 
 var (
-	//go:embed str.tpl
-	strsTpl string
+	//go:embed utilsStr.tpl
+	utilsStrTpl string
 	//go:embed usage.tpl
 	usageTpl string
 	//go:embed utils.tpl
@@ -168,7 +168,7 @@ func createUtilFile() error {
 		"/rand.go":  utilsRandTpl,
 		"/http.go":  utilsHttpTpl,
 		"/resp.go":  respTpl,
-		"/str.go":   strsTpl,
+		"/str.go":   utilsStrTpl,
 	}
 
 	for path, file := range files {

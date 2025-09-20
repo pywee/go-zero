@@ -87,3 +87,23 @@ func RemoveUnsupportedChars(s string) string {
 	re := regexp.MustCompile(`[\x{10000}-\x{10FFFF}]`)
 	return re.ReplaceAllString(s, "")
 }
+
+// Name2Case 驼峰转下划线
+func Name2Case(str string) string {
+	m := make([]rune, 0, 10)
+	for k, v := range str {
+		if k == 0 && IsWordEn(v) {
+			v += 32
+		} else if IsWordEn(v) {
+			m = append(m, '_')
+			v += 32
+		}
+		m = append(m, v)
+	}
+	return string(m)
+}
+
+func IsWordEn(s rune) bool {
+	return s >= 65 && s <= 90
+}
+
