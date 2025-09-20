@@ -245,7 +245,7 @@ func (m *customBaseModel) DeleteByWhere(ctx context.Context, where string, args 
 }
 
 // CountByWhere 根据条件统计多条记录
-func (m *customBaseModel) Sum(sumField, where string, args ...any) (int64, error) {
+func (m *customBaseModel) Sum(sumField, where string, args ...any) int64 {
 	if m.table == "" {
 		return 0, fmt.Errorf("table name is empty")
 	}
@@ -256,7 +256,11 @@ func (m *customBaseModel) Sum(sumField, where string, args ...any) (int64, error
 
 	query := fmt.Sprintf("select sum(%s) s from `%s` %s", sumField, m.table, toSQLWhere(where, ""))
 	err := m.c.Raw(query, args...).Scan(&resp).Error
-	return resp.S, err
+	if err != nil {
+		return -1
+	}
+
+	return resp.S
 }
 
 // CountByWhere 根据条件计数

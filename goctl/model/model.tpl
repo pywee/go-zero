@@ -34,7 +34,7 @@ type (
 		Update(context.Context, *{{.upperStartCamelObject}}) error
 		UpdateByWhere(context.Context, map[string]any, string, ...any) (int64, error)
 		Count(string, ...any) int64
-		Sum(string, string, ...any) (int64, error)
+		Sum(string, string, ...any) int64
 	}
 
 	custom{{.upperStartCamelObject}}Model struct {
