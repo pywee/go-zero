@@ -2,27 +2,18 @@ package {{.pkgName}}
 
 import (
 	{{.imports}}
-	"github.com/pywee/{{.path}}/utils"
 )
 
 type {{.logic}} struct {
 	logx.Logger
-	osType uint8
 	ctx    context.Context
-	user   *utils.LoggedInUser
 	svcCtx *svc.ServiceContext
 }
 
 func New{{.logic}}(ctx context.Context, svcCtx *svc.ServiceContext) *{{.logic}} {
-	var u *utils.LoggedInUser
-	if user := ctx.Value(utils.CtxUser); user != nil {
-		u = user.(*utils.LoggedInUser)
-	}
 	return &{{.logic}}{
 		ctx:    ctx,
-		user:   u,
 		svcCtx: svcCtx,
-		osType: svcCtx.GetOsType(ctx),
 	}
 }
 

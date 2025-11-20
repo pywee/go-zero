@@ -5,7 +5,7 @@ build:
 mac:
 	GOOS=darwin go build -ldflags="-s -w" -o goctl-darwin goctl.go
 	$(if $(shell command -v upx), upx goctl-darwin)
-	mv goctl-darwin /docker-env/go/bin/goctlPrivate
+	mv goctl-darwin /docker-env/go/bin/goctl
 
 win:
 	GOOS=windows go build -ldflags="-s -w" -o goctl.exe goctl.go
@@ -14,7 +14,7 @@ win:
 linux:
 	GOOS=linux go build -ldflags="-s -w" -o goctl-linux goctl.go
 	$(if $(shell command -v upx), upx goctl-linux)
-	mv goctl-linux /root/go/bin/goctlPrivate
+	mv goctl-linux /root/go/bin/goctl
 
 image:
 	docker build --rm --platform linux/amd64 -t kevinwan/goctl:$(version) .

@@ -50,23 +50,6 @@ var (
 	utilsTimeTpl string
 	//go:embed resp.tpl
 	respTpl string
-	//go:embed redis_cache.tpl
-	cacheTpl string
-	//go:embed redis_init.tpl
-	cacheInitTpl string
-	//go:embed redis_set.tpl
-	cacheSetTpl string
-	//go:embed redis_key.tpl
-	cacheKeyTpl string
-	//go:embed redis_list.tpl
-	cacheListTpl string
-	//go:embed redis_sorted.tpl
-	cacheSortedTpl string
-	//go:embed redis_string.tpl
-	cacheStringTpl string
-	//go:embed redis_hash.tpl
-	cacheHashTpl string
-
 	rootCmd = cobrax.NewCommand("goctl")
 )
 
@@ -147,7 +130,7 @@ func init() {
 	rootCmd.Command.AddCommand(cobracompletefig.CreateCompletionSpecCommand())
 
 	createUtilFile()
-	createCacheFile()
+	// createCacheFile()
 	rootCmd.MustInit()
 }
 
@@ -194,14 +177,14 @@ func createCacheFile() error {
 	}
 
 	files := map[string]string{
-		"/cache.go":        cacheTpl,
-		"/init.go":         cacheInitTpl,
-		"/redis_hash.go":   cacheHashTpl,
-		"/redis_key.go":    cacheKeyTpl,
-		"/redis_list.go":   cacheListTpl,
-		"/redis_string.go": cacheStringTpl,
-		"/redis_set.go":    cacheSetTpl,
-		"/redis_sorted.go": cacheSortedTpl,
+		// "/cache.go":        cacheTpl,
+		// "/init.go":         cacheInitTpl,
+		// "/redis_hash.go":   cacheHashTpl,
+		// "/redis_key.go":    cacheKeyTpl,
+		// "/redis_list.go":   cacheListTpl,
+		// "/redis_string.go": cacheStringTpl,
+		// "/redis_set.go":    cacheSetTpl,
+		// "/redis_sorted.go": cacheSortedTpl,
 	}
 	for path, file := range files {
 		if fileExists(dir + path) {
