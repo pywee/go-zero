@@ -1,11 +1,11 @@
 build:
-	go build -ldflags="-s -w" -o /root/go/bin/goctl goctl.go
+	go build -ldflags="-s -w" -o /root/go/bin/goctlBluetti goctl.go
 	$(if $(shell command -v upx), upx goctl)
 
 mac:
 	GOOS=darwin go build -ldflags="-s -w" -o goctl-darwin goctl.go
 	$(if $(shell command -v upx), upx goctl-darwin)
-	mv goctl-darwin /docker-env/go/bin/goctl
+	mv goctl-darwin /docker-env/go/bin/goctlBluetti
 
 win:
 	GOOS=windows go build -ldflags="-s -w" -o goctl.exe goctl.go
