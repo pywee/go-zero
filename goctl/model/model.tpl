@@ -1,16 +1,15 @@
 package {{.pkg}}
-{{if .withCache}}
+
 import (
 	"context"
 	"fmt"
-	"time"
 	"strings"
+	"time"
+
 	"gorm.io/gorm"
 	// "github.com/zeromicro/go-zero/core/stores/cache"
 )
-{{else}}
-import "github.com/zeromicro/go-zero/core/stores/sqlx"
-{{end}}
+
 var _ {{.upperStartCamelObject}}Model = (*custom{{.upperStartCamelObject}}Model)(nil)
 
 // 修改记录
@@ -39,7 +38,8 @@ type (
 	}
 
 	custom{{.upperStartCamelObject}}Model struct {
-		*customBaseModel
+		table string
+		c     *gorm.DB
 	}
 
 	{{.upperStartCamelObject}}Resp struct {
@@ -49,13 +49,10 @@ type (
 )
 
 // New{{.upperStartCamelObject}}Model returns a model for the database table.
-func New{{.upperStartCamelObject}}Model(conn *gorm.DB{{if .withCache}}, rds *rCache.RedisClientModel{{end}}) {{.upperStartCamelObject}}Model {
+func New{{.upperStartCamelObject}}Model(conn *gorm.DB) {{.upperStartCamelObject}}Model {
 	return &custom{{.upperStartCamelObject}}Model{
-		customBaseModel: &customBaseModel{
-			c:     conn,
-			rds:   rds,
-			table: "{{.lowerStartCamelObject}}",
-		},
+		c:     conn,
+		table: "{{.lowerStartCamelObject}}",
 	}
 }
 
@@ -113,30 +110,16 @@ func (m *custom{{.upperStartCamelObject}}Model) GetWithFields(ctx context.Contex
 		fields = "*"
 	}
 
-	pctx := parseContext(ctx)
-	key := fmt.Sprintf("model:site:%s:%s:id:%d", pctx.Domain, m.table, id)
-	if ok, _ := m.rds.GetCache(key, &resp); ok {
-		if resp.Id == 0 {
-			return nil, NotFoundRecord
-		}
-		return &resp, nil
-	}
-	
+	// 缓存相关代码已移除，如需缓存功能请参考其他 model 文件
 	query := fmt.Sprintf("select %s from `%s` where id=? AND deleteTs=0", fields, m.table)
 	if err := m.c.Raw(query, id).Scan(&resp).Error; err != nil {
 		return nil, err
 	}
 
 	if resp.Id == 0 {
-		m.rds.SetCache(key, resp, time.Second*2)
 		return nil, NotFoundRecord
 	}
 
-	if pctx.DataCacheTTL > 0 {
-		m.rds.SetCache(key, resp, time.Duration(pctx.DataCacheTTL)*time.Second)
-	} else {
-		m.rds.SetCache(key, resp, m.rds.TimeOut)
-	}
 	return &resp, nil
 }
 
@@ -166,29 +149,14 @@ func (m *custom{{.upperStartCamelObject}}Model) GetByWhereWithFields(ctx context
 	}
 
 	var resp {{.upperStartCamelObject}}
-	pctx := parseContext(ctx)
+	// 缓存相关代码已移除，如需缓存功能请参考其他 model 文件
 	query := fmt.Sprintf("select %s from `%s` %s", fields, m.table, toSQLWhere(where, "1"))
-	key := fmt.Sprintf("model:site:%s:%s:get:%s", pctx.Domain, m.table, Md5(fmt.Sprintf("%s%v", query, args)))
-	if ok, _ := m.rds.GetCache(key, &resp); ok {
-		if resp.Id == 0 {
-			return nil, nil
-		}
-		return &resp, nil
-	}
-
 	if err := m.c.Raw(query, args...).Scan(&resp).Error; err != nil {
 		return nil, err
 	}
 
 	if resp.Id == 0 {
-		m.rds.SetCache(key, resp, time.Second*2)
 		return nil, nil
-	}
-
-	if pctx.DataCacheTTL > 0 {
-		m.rds.SetCache(key, resp, time.Duration(pctx.DataCacheTTL)*time.Second)
-	} else {
-		m.rds.SetCache(key, resp, m.rds.TimeOut)
 	}
 
 	return &resp, nil
@@ -201,15 +169,10 @@ func (m *custom{{.upperStartCamelObject}}Model) GetListByWhereWithFields(ctx con
 		fields = "*"
 	}
 
-	var ret {{.upperStartCamelObject}}Resp
-	pctx := parseContext(ctx)
+	var ret []*{{.upperStartCamelObject}}
+	// 缓存相关代码已移除，如需缓存功能请参考其他 model 文件
 	query := fmt.Sprintf("select %s from `%s` %s", fields, m.table, toSQLWhere(where, ""))
-	key := fmt.Sprintf("model:site:%s:%s:list:%s", pctx.Domain, m.table, Md5(fmt.Sprintf("%s%v", query, args)))
-	if ok, _ := m.rds.GetCache(key, &ret); ok {
-		return ret.Resp, ret.Count
-	}
-
-	if err := m.c.Raw(query, args...).Scan(&ret.Resp).Error; err != nil {
+	if err := m.c.Raw(query, args...).Scan(&ret).Error; err != nil {
 		return nil, 0
 	}
 
@@ -219,15 +182,9 @@ func (m *custom{{.upperStartCamelObject}}Model) GetListByWhereWithFields(ctx con
 	} else if idx := strings.Index(where, "limit "); idx != -1 {
 		where = where[:idx]
 	}
-	ret.Count = m.Count(where, args...)
+	count := m.Count(where, args...)
 
-	if pctx.DataCacheTTL > 0 {
-		m.rds.SetCache(key, ret, time.Duration(pctx.DataCacheTTL)*time.Second)
-	} else {
-		m.rds.SetCache(key, ret, m.rds.TimeOut)
-	}
-
-	return ret.Resp, ret.Count
+	return ret, count
 }
 
 // Insert 新增
@@ -241,8 +198,7 @@ func (m *custom{{.upperStartCamelObject}}Model) Insert(ctx context.Context, data
 
 	ret := m.c.Table(m.table).Create(data)
 
-	key := fmt.Sprintf("model:site:%s:%s:list:*", parseContext(ctx).Domain, m.table)
-	m.rds.DelCache(key)
+	// 缓存相关代码已移除，如需缓存功能请参考其他 model 文件
 
 	return data.Id, ret.Error
 }
@@ -255,8 +211,65 @@ func (m *custom{{.upperStartCamelObject}}Model) Update(ctx context.Context, data
 		return ret.Error
 	}
 
-	key := fmt.Sprintf("model:site:%s:%s:*", parseContext(ctx).Domain, m.table)
-	m.rds.DelCache(key)
+	// 缓存相关代码已移除，如需缓存功能请参考其他 model 文件
 
 	return nil
+}
+
+// UpdateByWhere 根据条件批量更新
+func (m *custom{{.upperStartCamelObject}}Model) UpdateByWhere(ctx context.Context, data map[string]any, where string, args ...any) (int64, error) {
+	if _, ok := data["updateTs"]; !ok {
+		data["updateTs"] = time.Now().Unix()
+	}
+	ret := m.c.Table(m.table).Where(where, args...).Updates(data)
+	return ret.RowsAffected, ret.Error
+}
+
+// Delete 根据 ID 删除记录（软删除）
+func (m *custom{{.upperStartCamelObject}}Model) Delete(ctx context.Context, id int64) (int64, error) {
+	ts := time.Now().Unix()
+	ret := m.c.Exec("UPDATE `"+m.table+"` SET deleteTs=?,updateTs=? WHERE id=?", ts, ts, id)
+	return ret.RowsAffected, ret.Error
+}
+
+// HardDelete 根据 ID 硬删除记录
+func (m *custom{{.upperStartCamelObject}}Model) HardDelete(ctx context.Context, id int64) error {
+	ret := m.c.Exec("DELETE FROM `"+m.table+"` WHERE id=?", id)
+	return ret.Error
+}
+
+// DeleteByWhere 根据条件批量删除（软删除）
+func (m *custom{{.upperStartCamelObject}}Model) DeleteByWhere(ctx context.Context, where string, args ...any) (int64, error) {
+	ts := time.Now().Unix()
+	ret := m.c.Table(m.table).Where(where, args...).Updates(map[string]any{
+		"updateTs": ts,
+		"deleteTs": ts,
+	})
+	return ret.RowsAffected, ret.Error
+}
+
+// Count 根据条件计数
+func (m *custom{{.upperStartCamelObject}}Model) Count(where string, args ...any) int64 {
+	var resp struct {
+		C int64 `gorm:"column:c" json:"c"`
+	}
+
+	query := fmt.Sprintf("select count(*) c from `%s` %s", m.table, toSQLWhere(where, ""))
+	if err := m.c.Raw(query, args...).Scan(&resp).Error; err != nil {
+		return 0
+	}
+	return resp.C
+}
+
+// Sum 根据条件统计
+func (m *custom{{.upperStartCamelObject}}Model) Sum(sumField, where string, args ...any) int64 {
+	var resp struct {
+		S int64 `gorm:"column:s" json:"s"`
+	}
+
+	query := fmt.Sprintf("select sum(%s) s from `%s` %s", sumField, m.table, toSQLWhere(where, ""))
+	if err := m.c.Raw(query, args...).Scan(&resp).Error; err != nil {
+		return 0
+	}
+	return resp.S
 }
