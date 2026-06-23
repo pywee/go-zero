@@ -170,10 +170,7 @@ func (m *custom{{.upperStartCamelObject}}Model) GetByWhereWithFields(ctx context
 	pctx := parseContext(ctx)
 	query := fmt.Sprintf("select %s from `%s` %s", fields, m.table, toSQLWhere(where, "1"))
 	key := fmt.Sprintf("model:site:%s:%s:get:%s", pctx.Domain, m.table, Md5(fmt.Sprintf("%s%v", query, args)))
-	if ok, _ := m.rds.GetCache(key, &resp); ok {
-		if resp.Id == 0 {
-			return nil, nil
-		}
+	if ok, _ := m.rds.GetCache(key, &resp); ok && resp.Id > 0 {
 		return &resp, nil
 	}
 
